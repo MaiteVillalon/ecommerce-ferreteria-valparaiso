@@ -7,6 +7,7 @@ import {
   ShieldCheck, Paintbrush, ScanBarcode
 } from "lucide-react";
 import { ImageWithFallback } from "@/app/components/figma/ImageWithFallback";
+import { HeroSlideshow } from "@/app/components/HeroSlideshow";
 import storeFront from "@/imports/Captura_de_pantalla_2026-07-26_010939.png";
 import logoImg from "@/imports/ferreteria-la-nonna-logo.png";
 
@@ -759,43 +760,7 @@ function HomePage({ navigate, addToCart, products }: { navigate: NavigateFn; add
   return (
     <div>
       {/* Hero */}
-      <section className="relative bg-[#1C1C1C] overflow-hidden" style={{ minHeight: 460 }}>
-        <img
-          src={unsplash("photo-1504307651254-35680f356dfd", 1600, 800)}
-          alt="Ferretería La Nona"
-          className="absolute inset-0 w-full h-full object-cover opacity-30"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#1C1C1C] via-transparent to-transparent" />
-
-        <div className="relative flex flex-col items-center justify-center px-4 text-center pb-16 pt-12" style={{ minHeight: 414 }}>
-          <div className="flex items-center gap-2 bg-[#2ECC71] text-white text-xs font-black px-3 py-1.5 mb-5 uppercase tracking-widest rounded-md">Compra online y retira en tienda<Store size={11} /></div>
-
-          <h1
-            className="text-4xl md:text-6xl font-black text-white uppercase tracking-tight leading-none mb-3 text-center w-full"
-            style={{ fontFamily: "var(--font-display)" }}
-          >Bienvenido a<br />Ferretería La Nonna</h1>
-          <p className="text-gray-400 text-sm md:text-base mb-7 max-w-md">
-            Herramientas, materiales y más. Pedido listo en tienda el mismo día.
-          </p>
-
-          <form onSubmit={handleSearch} className="flex w-full max-w-xl shadow-2xl rounded-sm overflow-hidden">
-            <input
-              value={searchVal}
-              onChange={(e) => setSearchVal(e.target.value)}
-              placeholder="Buscar producto, marca o código SKU..."
-              className="flex-1 bg-white text-[#1A1A1A] px-4 py-3.5 text-sm font-medium outline-none placeholder-gray-400 rounded-[4px] bg-[#e2e2e2]"
-            />
-            <button
-              type="submit"
-              className="bg-[#2ECC71] hover:bg-[#27AE60] px-5 py-3.5 text-white transition-colors shrink-0"
-            >
-              <Search size={18} />
-            </button>
-          </form>
-        </div>
-
-        <TapeRule />
-      </section>
+      <HeroSlideshow onCatalogClick={() => navigate("catalog")} />
 
       {/* Category Hover Effect */}
       <section className="max-w-7xl mx-auto px-4 py-10">
