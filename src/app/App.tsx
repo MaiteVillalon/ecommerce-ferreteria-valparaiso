@@ -2292,209 +2292,128 @@ function Footer({ navigate }: { navigate: NavigateFn }) {
 
 // ─── NOSOTROS PAGE ───────────────────────────────────────────────────────────
 function NosotrosPage({ navigate }: { navigate: NavigateFn }) {
-  const valores = [
-    {
-      titulo: "Más de 30 años en Valparaíso",
-      texto:
-        "Desde 1993 abastecemos a maestros, contratistas y vecinos del barrio. Empezamos en un local chico en el puerto y hoy somos una ferretería de referencia en la región.",
-    },
-    {
-      titulo: "Conocimiento de oficio",
-      texto:
-        "Nuestro equipo tiene más de 15 años de experiencia promedio. Si tienes dudas sobre el producto correcto para tu trabajo, te asesoramos en el mesón sin apuro.",
-    },
-    {
-      titulo: "Precio justo, sin vueltas",
-      texto:
-        "Trabajamos con márgenes honestos y stock real. Lo que ves en pantalla es lo que hay en bodega. Sin sorpresas al llegar a retirar.",
-    },
-    {
-      titulo: "Solo retiro en tienda",
-      texto:
-        "No despachamos a domicilio porque queremos asegurarnos de que cada pedido salga bien. En el mesón revisamos contigo cada artículo antes de que te vayas.",
-    },
-  ];
+  const sectionRef = useRef<HTMLDivElement>(null);
+  const [visible, setVisible] = useState(false);
 
-  const equipo = [
-    { nombre: "Rosa Olivares", cargo: "Fundadora", años: "31 años en la ferretería", img: "photo-1567532939604-b6b5b0db2604" },
-    { nombre: "Marcelo Olivares", cargo: "Jefe de bodega", años: "18 años en la empresa", img: "photo-1472099645785-5658abf4ff4e" },
-    { nombre: "Camila Reyes", cargo: "Atención al cliente", años: "6 años en la empresa", img: "photo-1607746882042-944635dfe10e" },
-  ];
+  useEffect(() => {
+    const el = sectionRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) { setVisible(true); observer.disconnect(); } },
+      { threshold: 0.12 }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
 
   return (
-    <div>
-      {/* Hero */}
-      <section className="relative h-56 md:h-72 bg-[#1C1C1C] overflow-hidden">
-        <img
-          src={unsplash("photo-1581094794329-c8112a89af12", 1400, 600)}
-          alt="Ferretería La Nona"
-          className="absolute inset-0 w-full h-full object-cover opacity-25"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#1C1C1C] via-transparent to-transparent" />
-        <div className="relative h-full flex flex-col justify-end px-4 pb-8 max-w-7xl mx-auto">
-          <p className="text-[#2ECC71] text-xs font-black uppercase tracking-widest mb-2">Quiénes somos</p>
-          <h1
-            className="text-4xl md:text-6xl font-black text-white uppercase tracking-tight leading-none"
-            style={{ fontFamily: "var(--font-display)" }}
-          >
-            Ferretería La Nona
-          </h1>
-        </div>
-      </section>
+    <div className="bg-[#0A0A0A] min-h-screen">
 
-      {/* Intro */}
-      <section className="max-w-7xl mx-auto px-4 py-12">
-        <div className="grid md:grid-cols-2 gap-10 items-center">
-          <div>
-            <p
-              className="text-3xl md:text-4xl font-black uppercase tracking-tight leading-tight mb-5"
-              style={{ fontFamily: "var(--font-display)" }}
+      {/* ── Encabezado ── */}
+      <div className="max-w-5xl mx-auto px-4 pt-20 pb-10 text-center">
+        <p className="text-[#2ECC71] text-xs font-black uppercase tracking-widest mb-3">
+          Quiénes somos
+        </p>
+        <h1
+          className="text-4xl md:text-6xl font-black text-white uppercase tracking-tight leading-none"
+          style={{ fontFamily: "var(--font-display)" }}
+        >
+          Nuestra historia
+        </h1>
+      </div>
+
+      {/* ── Contenido principal: texto + foto ── */}
+      <section
+        ref={sectionRef}
+        className="max-w-5xl mx-auto px-4 pb-20"
+        style={{
+          opacity: visible ? 1 : 0,
+          transform: visible ? "translateY(0)" : "translateY(28px)",
+          transition: "opacity 0.7s ease, transform 0.7s ease",
+        }}
+      >
+        <div className="flex flex-col md:flex-row gap-10 md:gap-14 items-start">
+
+          {/* Foto — arriba en mobile, derecha en desktop */}
+          <div className="w-full md:order-2 md:w-2/5 shrink-0">
+            <div
+              className="relative w-full overflow-hidden rounded-2xl bg-[#1A1A1A] border border-[#262626]"
+              style={{ aspectRatio: "4/5" }}
             >
-              Una ferretería de familia<br />
-              <span className="text-[#2ECC71]">con raíces en el puerto.</span>
-            </p>
-            <p className="text-gray-600 leading-relaxed mb-4">
-              La Nona empezó con Rosa Olivares, que llegó desde Quillota con un cajón de herramientas
-              y un local arrendado en Placilla. El apodo lo pusieron los clientes desde el primer
-              año: la Nona sabe dónde está cada tornillo.
-            </p>
-            <p className="text-gray-600 leading-relaxed">
-              Hoy seguimos siendo el mismo negocio familiar — más grande, con más stock y con compra
-              online — pero con la misma filosofía: atender bien, tener lo que se necesita y no
-              venderle gato por liebre a nadie.
-            </p>
-          </div>
-          <div className="relative overflow-hidden bg-gray-900" style={{ height: "400px" }}>
-            <ImageWithFallback
-              src={storeFront}
-              alt="Local Ferretería La Nona — Av. Obispo Valdés Subercaseaux 533, Placilla"
-              className="w-full h-full object-cover object-center"
-            />
-            <div className="absolute top-0 left-0 w-1 h-full bg-[#2ECC71]" />
-          </div>
-        </div>
-      </section>
-
-      {/* Valores */}
-      <section className="bg-[#1C1C1C] py-12">
-        <div className="max-w-7xl mx-auto px-4">
-          <p
-            className="text-2xl md:text-3xl font-black text-white uppercase tracking-tight mb-8"
-            style={{ fontFamily: "var(--font-display)" }}
-          >
-            Cómo trabajamos
-          </p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-px bg-[#2E2E2E]">
-            {valores.map((v, i) => (
-              <div key={i} className="bg-[#1C1C1C] p-6 hover:bg-[#242424] transition-colors">
-                <div className="w-6 h-0.5 bg-[#2ECC71] mb-4" />
-                <p
-                  className="text-white font-black uppercase tracking-tight text-lg mb-2"
-                  style={{ fontFamily: "var(--font-display)" }}
-                >
-                  {v.titulo}
-                </p>
-                <p className="text-gray-400 text-sm leading-relaxed">{v.texto}</p>
+              <img
+                src="/images/nosotros/familia.jpg"
+                alt="Familia Palma Díaz — Ferretería La Nonna"
+                className="w-full h-full object-cover"
+                onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
+              />
+              {/* Placeholder visible mientras no haya foto */}
+              <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-[#3A3A3A] pointer-events-none">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2">
+                  <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/>
+                  <polyline points="21 15 16 10 5 21"/>
+                </svg>
+                <span className="text-xs font-medium uppercase tracking-widest">
+                  Foto de la familia
+                </span>
               </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Equipo */}
-      <section className="max-w-7xl mx-auto px-4 py-12">
-        <p
-          className="text-2xl md:text-3xl font-black uppercase tracking-tight mb-8"
-          style={{ fontFamily: "var(--font-display)" }}
-        >
-          El equipo
-        </p>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          {equipo.map((p) => (
-            <div key={p.nombre} className="border border-gray-200 bg-white">
-              <div className="aspect-[3/2] bg-gray-200 overflow-hidden">
-                <img
-                  src={unsplash(p.img, 600, 400)}
-                  alt={p.nombre}
-                  className="w-full h-full object-cover object-top grayscale"
-                />
-              </div>
-              <div className="p-4 border-t-2 border-[#2ECC71]">
-                <p className="font-black text-base" style={{ fontFamily: "var(--font-display)" }}>
-                  {p.nombre}
-                </p>
-                <p className="text-sm font-semibold text-[#2ECC71]">{p.cargo}</p>
-                <p className="text-xs text-gray-500 mt-0.5">{p.años}</p>
-              </div>
+              {/* Borde verde izquierdo */}
+              <div className="absolute top-0 left-0 w-1 h-full bg-[#2ECC71] rounded-l-2xl" />
             </div>
-          ))}
-        </div>
-      </section>
-
-      {/* Timeline */}
-      <section className="bg-[#F4F2EE] border-y border-gray-200 py-12">
-        <div className="max-w-4xl mx-auto px-4">
-          <p
-            className="text-2xl font-black uppercase tracking-tight mb-8 text-center"
-            style={{ fontFamily: "var(--font-display)" }}
-          >
-            Historia
-          </p>
-          <div className="space-y-0">
-            {[
-              { año: "1993", hito: "Rosa Olivares abre el primer local en Placilla con 40m² de superficie." },
-              { año: "2001", hito: "Se amplía la bodega. Primeros contratos con constructoras del sector." },
-              { año: "2009", hito: "Marcelo Olivares entra al negocio familiar. Se suma una segunda caja." },
-              { año: "2018", hito: "Renovación completa del local. 400m² de planta y sistema de inventario digital." },
-              { año: "2024", hito: "Lanzamiento de la tienda online con retiro en tienda. El primer pedido fue de 120 sacos de cemento." },
-            ].map((item, i) => (
-              <div key={item.año} className="flex gap-6 items-start group">
-                <div className="shrink-0 pt-5">
-                  <span
-                    className="font-black text-2xl text-[#2ECC71] leading-none"
-                    style={{ fontFamily: "var(--font-display)" }}
-                  >
-                    {item.año}
-                  </span>
-                </div>
-                <div className="flex flex-col items-center shrink-0">
-                  <div className="w-px bg-gray-300 h-5" style={{ visibility: i === 0 ? "hidden" : "visible" }} />
-                  <div className="w-3 h-3 border-2 border-[#2ECC71] bg-white shrink-0" />
-                  <div className="w-px bg-gray-300 flex-1 min-h-[32px]" />
-                </div>
-                <p className="text-sm text-gray-600 leading-relaxed pt-4 pb-6">{item.hito}</p>
-              </div>
-            ))}
           </div>
+
+          {/* Texto — orden normal en ambos breakpoints */}
+          <div className="md:order-1 md:w-3/5 flex flex-col gap-6 pt-2">
+            <p className="text-[#D4D4CC] text-base md:text-lg leading-relaxed">
+              Ferretería La Nonna es un proyecto de familia, hecho por porteños de toda la vida.
+              Somos Jacqueline Díaz y Humberto Palma, junto a nuestros tres hijos.
+            </p>
+            <p className="text-[#9B9B95] text-sm md:text-base leading-relaxed">
+              Antes de abrir el local, Humberto se dedicó casi 20 años al rubro de la ferretería
+              y venta de productos del área — un camino largo que nos dio la experiencia y el
+              cariño por este oficio antes de animarnos a tener nuestro propio espacio.
+            </p>
+            <p className="text-[#9B9B95] text-sm md:text-base leading-relaxed">
+              Desde 2010 vivimos en Placilla de Peñuelas, y fue ahí donde nació la idea de
+              abrir Ferretería La Nonna. Partimos con un local pequeño en la Galería Celeste,
+              y con el tiempo — gracias a la confianza de nuestros clientes — nos cambiamos
+              dentro de la misma galería a un espacio mucho más grande, donde estamos hoy.
+            </p>
+            <p className="text-[#D4D4CC] text-sm md:text-base leading-relaxed border-l-2 border-[#2ECC71] pl-4 italic">
+              Detrás de cada venta hay una familia que conoce el rubro de primera mano, y que
+              trabaja todos los días para que encuentres justo lo que necesitas.
+            </p>
+          </div>
+
         </div>
       </section>
 
-      {/* CTA */}
-      <section className="max-w-7xl mx-auto px-4 py-12 text-center">
+      {/* ── CTA ── */}
+      <section className="border-t border-[#1E1E1E] py-14 px-4 text-center">
         <p
-          className="text-2xl md:text-3xl font-black uppercase tracking-tight mb-3"
+          className="text-2xl md:text-3xl font-black text-white uppercase tracking-tight mb-3"
           style={{ fontFamily: "var(--font-display)" }}
         >
-          ¿Necesitas algo para tu obra?
+          ¿Tienes un proyecto en mente?
         </p>
-        <p className="text-gray-500 text-sm mb-7 max-w-md mx-auto">
-          Revisa el catálogo, arma tu pedido y retíralo cuando quieras. Si tienes dudas, llámanos.
+        <p className="text-[#9B9B95] text-sm mb-8 max-w-sm mx-auto leading-relaxed">
+          Revisa el catálogo, arma tu pedido y retíralo en tienda. Si tienes dudas, escríbenos.
         </p>
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
           <button
             onClick={() => navigate("catalog")}
-            className="bg-[#2ECC71] hover:bg-[#27AE60] text-white px-8 py-3.5 font-black uppercase tracking-widest text-sm transition-colors"
+            className="bg-[#2ECC71] hover:bg-[#27AE60] text-white px-8 py-3.5 font-black uppercase tracking-widest text-sm transition-colors rounded-sm"
           >
             Ver catálogo
           </button>
-          <a
-            href="tel:+56322214589"
-            className="border-2 border-[#1C1C1C] px-8 py-3.5 font-black uppercase tracking-widest text-sm hover:bg-[#1C1C1C] hover:text-white transition-colors inline-block"
+          <button
+            onClick={() => navigate("contacto")}
+            className="border border-[#2E2E2E] hover:border-[#2ECC71] text-[#9B9B95] hover:text-white px-8 py-3.5 font-black uppercase tracking-widest text-sm transition-colors rounded-sm"
           >
-            +56 32 221 4589
-          </a>
+            Contáctanos
+          </button>
         </div>
       </section>
+
     </div>
   );
 }
