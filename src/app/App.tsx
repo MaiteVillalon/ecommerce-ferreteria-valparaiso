@@ -15,7 +15,7 @@ interface Spec { key: string; value: string }
 interface ProductVariants { type: "color" | "size"; options: string[] }
 interface Product {
   id: number; sku: string; name: string; brand: string; category: string;
-  price: number; originalPrice?: number; stock: number; img: string;
+  price: number; originalPrice?: number; available: boolean; img: string;
   description: string; specs: Spec[]; badge?: string; isOffer?: boolean;
   variants?: ProductVariants;
 }
@@ -63,7 +63,7 @@ const CATEGORIES = [
 const PRODUCTS: Product[] = [
   {
     id: 1, sku: "BSH-GSB550", name: "Taladro Percutor Bosch GSB 550W",
-    brand: "Bosch", category: "electric", price: 49990, stock: 8,
+    brand: "Bosch", category: "electric", price: 49990, available: true,
     img: "photo-1504148455328-c376907d081c",
     description: "Taladro percutor de 550W para mampostería, hormigón y madera. Incluye mandril 13mm, mango auxiliar y maletín de transporte. Ideal para faenas en construcción y remodelación.",
     specs: [
@@ -75,7 +75,7 @@ const PRODUCTS: Product[] = [
   },
   {
     id: 2, sku: "BSH-DC115-10", name: "Disco Corte Metal Bosch 115mm (Pack ×10)",
-    brand: "Bosch", category: "electric", price: 8490, originalPrice: 10990, stock: 45,
+    brand: "Bosch", category: "electric", price: 8490, originalPrice: 10990, available: true,
     img: "photo-1685713011172-3ba27ff25e22",
     description: "Pack de 10 discos de corte para amoladora angular 4½\". Apto para acero y metales ferrosos. Corte limpio y preciso.",
     specs: [
@@ -87,7 +87,7 @@ const PRODUCTS: Product[] = [
   },
   {
     id: 3, sku: "STL-AP8x1-100", name: "Tornillos Autoperforantes 8×1\" (Caja 100u)",
-    brand: "Stanley", category: "fixings", price: 3290, stock: 120,
+    brand: "Stanley", category: "fixings", price: 3290, available: true,
     img: "photo-1568393691622-c7ba131d63b4",
     description: "Caja de 100 tornillos autoperforantes punta de broca, cabeza hexagonal. Para fijación en estructura metálica liviana y plancha de zinc.",
     specs: [
@@ -98,7 +98,7 @@ const PRODUCTS: Product[] = [
   },
   {
     id: 4, sku: "MEL-CEM-25", name: "Cemento Melón Portland Gris 25 kg",
-    brand: "Melón", category: "fixings", price: 7990, stock: 60,
+    brand: "Melón", category: "fixings", price: 7990, available: true,
     img: "photo-1581094794329-c8112a89af12",
     description: "Cemento portland puzolánico CPP 35 de uso general. Ideal para confección de hormigón, morteros, revoques y fundaciones.",
     specs: [
@@ -109,7 +109,7 @@ const PRODUCTS: Product[] = [
   },
   {
     id: 5, sku: "MKT-9553NB", name: "Amoladora Angular Makita 9553NB 900W",
-    brand: "Makita", category: "electric", price: 59990, originalPrice: 69990, stock: 5,
+    brand: "Makita", category: "electric", price: 59990, originalPrice: 69990, available: true,
     img: "photo-1564182998523-6923112e7d6b",
     description: "Amoladora angular 900W con disco 115mm. Motor potente con engranajes helicoidales. Protección contra sobrecarga.",
     specs: [
@@ -121,7 +121,7 @@ const PRODUCTS: Product[] = [
   },
   {
     id: 6, sku: "SW-LAT4L", name: "Pintura Látex Sherwin-Williams 4L",
-    brand: "Sherwin-Williams", category: "paint", price: 24990, stock: 22,
+    brand: "Sherwin-Williams", category: "paint", price: 24990, available: true,
     img: "photo-1562259929-b4e1fd3aef09",
     description: "Pintura látex interior/exterior de alta cubrición. Secado rápido, lavable, resistente a manchas y hongos.",
     specs: [
@@ -133,7 +133,7 @@ const PRODUCTS: Product[] = [
   },
   {
     id: 7, sku: "3M-GL-BOV", name: "Guante de Cuero 3M Tipo A",
-    brand: "3M", category: "safety", price: 4590, stock: 35,
+    brand: "3M", category: "safety", price: 4590, available: true,
     img: "photo-1585771724684-38269d6639fd",
     description: "Guante cuero flor de vacuno reforzado en palma y dedos. Protección mecánica tipo A según EN 388. Para trabajos de construcción y soldadura.",
     specs: [
@@ -144,7 +144,7 @@ const PRODUCTS: Product[] = [
   },
   {
     id: 8, sku: "DML-EXT10M", name: "Extensión Eléctrica 10m 3×1.5mm²",
-    brand: "Dimelec", category: "electrical", price: 12990, stock: 18,
+    brand: "Dimelec", category: "electrical", price: 12990, available: true,
     img: "photo-1621905251189-08b45249ff78",
     description: "Extensión con 3 enchufes hembra. Conductor cobre 3×1.5mm² hasta 1.500W. Cable reforzado con protección UV.",
     specs: [
@@ -155,7 +155,7 @@ const PRODUCTS: Product[] = [
   },
   {
     id: 9, sku: "STL-STL14", name: "Llave Stilson Stanley 14\" Cromada",
-    brand: "Stanley", category: "manual", price: 15490, stock: 12,
+    brand: "Stanley", category: "manual", price: 15490, available: true,
     img: "photo-1572981779307-38b8cabb2407",
     description: "Llave stilson 14\" con mandíbulas de acero cromado forjado. Para tubos hasta 1½\". Agarre antideslizante.",
     specs: [
@@ -166,7 +166,7 @@ const PRODUCTS: Product[] = [
   },
   {
     id: 10, sku: "MDC-VUL25-100", name: "Cable Vulcanita 2.5mm² Rollo 100m",
-    brand: "Madeco", category: "electrical", price: 89990, stock: 10,
+    brand: "Madeco", category: "electrical", price: 89990, available: true,
     img: "photo-1558618047-f2e04cd39a85",
     description: "Rollo 100m cable vulcanita unipolar 2.5mm² para instalaciones domiciliarias. Conductor cobre recocido.",
     specs: [
@@ -178,7 +178,7 @@ const PRODUCTS: Product[] = [
   },
   {
     id: 11, sku: "TGR-PVC4-3M", name: "Tubo PVC Sanitario 4\" × 3m",
-    brand: "Tigre", category: "plumbing", price: 8990, stock: 28,
+    brand: "Tigre", category: "plumbing", price: 8990, available: true,
     img: "photo-1504328345606-18bbc8c9d7d1",
     description: "Tubo de PVC sanitario 4\" para alcantarillado domiciliario. Alta resistencia química y mecánica.",
     specs: [
@@ -189,7 +189,7 @@ const PRODUCTS: Product[] = [
   },
   {
     id: 12, sku: "3M-H700", name: "Casco Seguridad 3M H-700",
-    brand: "3M", category: "safety", price: 8490, stock: 15,
+    brand: "3M", category: "safety", price: 8490, available: true,
     img: "photo-1582719508461-905c673771fd",
     description: "Casco de seguridad clase E con ajuste por ruleta. Resistente a alto voltaje eléctrico. Liviano y ventilado.",
     specs: [
@@ -544,14 +544,9 @@ function ProductCard({
             {p.badge}
           </div>
         )}
-        {p.stock > 0 && p.stock <= 5 && (
-          <div className="absolute bottom-2 right-2 bg-amber-500 text-white text-xs font-bold px-2 py-0.5 rounded-sm">
-            Últimas {p.stock} unid.
-          </div>
-        )}
-        {p.stock === 0 && (
+        {!p.available && (
           <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
-            <span className="text-white font-black text-sm uppercase tracking-widest">Sin stock</span>
+            <span className="text-white font-black text-sm uppercase tracking-widest">No disponible</span>
           </div>
         )}
       </div>
@@ -580,11 +575,11 @@ function ProductCard({
           </div>
           <button
             onClick={handleAdd}
-            disabled={p.stock === 0}
+            disabled={!p.available}
             className={`flex items-center gap-1 px-3 py-1.5 text-xs font-bold transition-all rounded-sm ${
               added
                 ? "bg-green-600 text-white"
-                : p.stock === 0
+                : !p.available
                 ? "bg-gray-200 text-gray-400 cursor-not-allowed"
                 : "bg-[#2ECC71] hover:bg-[#27AE60] text-white"
             }`}
@@ -929,7 +924,7 @@ function CatalogPage({ navigate, addToCart, products }: { navigate: NavigateFn; 
     if (catFilter && p.category !== catFilter) return false;
     if (brandFilter && p.brand !== brandFilter) return false;
     if (p.price > maxPrice) return false;
-    if (inStock && p.stock === 0) return false;
+    if (inStock && !p.available) return false;
     if (query) {
       const q = query.toLowerCase();
       if (!p.name.toLowerCase().includes(q) && !p.sku.toLowerCase().includes(q) && !p.brand.toLowerCase().includes(q)) return false;
@@ -1007,7 +1002,7 @@ function CatalogPage({ navigate, addToCart, products }: { navigate: NavigateFn; 
           onChange={(e) => setInStock(e.target.checked)}
           className="accent-[#2ECC71] w-4 h-4"
         />
-        <span className="font-medium text-gray-700">Solo con stock disponible</span>
+        <span className="font-medium text-gray-700">Solo disponibles</span>
       </label>
 
       {(catFilter || brandFilter || maxPrice < 200000 || inStock) && (
@@ -1124,12 +1119,9 @@ function ProductPage({
     setTimeout(() => setAdded(false), 1600);
   };
 
-  const stockStatus =
-    p.stock === 0
-      ? { label: "Sin stock en tienda", color: "text-red-600", dot: "bg-red-500" }
-      : p.stock <= 5
-      ? { label: `Últimas ${p.stock} unidades en tienda`, color: "text-amber-600", dot: "bg-amber-500" }
-      : { label: `${p.stock} unidades disponibles en tienda`, color: "text-green-700", dot: "bg-green-500" };
+  const stockStatus = p.available
+    ? { label: "Disponible en tienda", color: "text-green-700", dot: "bg-green-500" }
+    : { label: "No disponible", color: "text-red-600", dot: "bg-red-500" };
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-6">
@@ -1244,7 +1236,7 @@ function ProductPage({
                 {qty}
               </span>
               <button
-                onClick={() => setQty((q) => Math.min(p.stock, q + 1))}
+                onClick={() => setQty((q) => q + 1)}
                 className="w-11 h-12 flex items-center justify-center hover:bg-gray-100 font-black text-lg transition-colors"
               >
                 +
@@ -1252,11 +1244,11 @@ function ProductPage({
             </div>
             <button
               onClick={handleAdd}
-              disabled={p.stock === 0}
+              disabled={!p.available}
               className={`flex-1 py-3 font-black text-sm uppercase tracking-widest transition-colors flex items-center justify-center gap-2 ${
                 added
                   ? "bg-green-600 text-white"
-                  : p.stock === 0
+                  : !p.available
                   ? "bg-gray-200 text-gray-400 cursor-not-allowed"
                   : "bg-[#2ECC71] hover:bg-[#27AE60] text-white"
               }`}
@@ -2651,7 +2643,7 @@ function AdminPage({
 
   function startEdit(p: Product) {
     setEditingId(p.id);
-    setEditBuf({ name: p.name, price: p.price, stock: p.stock, badge: p.badge });
+    setEditBuf({ name: p.name, price: p.price, badge: p.badge });
   }
   function saveEdit(id: number) {
     setProducts((prev) => prev.map((p) => (p.id === id ? { ...p, ...editBuf } : p)));
@@ -2871,16 +2863,7 @@ function AdminPage({
                     </button>
                   </th>
                   <th className="text-left px-4 py-3">
-                    <button
-                      onClick={() => setSortBy(sortBy === "stock-asc" ? "stock-desc" : "stock-asc")}
-                      className="flex items-center gap-1 hover:text-[#1C1C1C] transition-colors"
-                    >
-                      Stock
-                      <span className="flex flex-col leading-none opacity-60">
-                        <span className={sortBy === "stock-asc" ? "text-[#2ECC71]" : ""}>▲</span>
-                        <span className={sortBy === "stock-desc" ? "text-[#2ECC71]" : ""}>▼</span>
-                      </span>
-                    </button>
+                      Disponibilidad
                   </th>
                   <th className="text-left px-4 py-3 hidden md:table-cell">Badge</th>
                   <th className="px-4 py-3 text-right">
@@ -2899,8 +2882,8 @@ function AdminPage({
                 }).sort((a, b) => {
                   if (sortBy === "price-asc")  return a.price - b.price;
                   if (sortBy === "price-desc") return b.price - a.price;
-                  if (sortBy === "stock-asc")  return a.stock - b.stock;
-                  if (sortBy === "stock-desc") return b.stock - a.stock;
+                  if (sortBy === "stock-asc")  return Number(b.available) - Number(a.available);
+                  if (sortBy === "stock-desc") return Number(a.available) - Number(b.available);
                   return 0;
                 }).map((p) => {
                   const isEditing = editingId === p.id;
@@ -2925,10 +2908,12 @@ function AdminPage({
                         }
                       </td>
                       <td className="px-4 py-3">
-                        {isEditing
-                          ? <input type="number" value={editBuf.stock ?? ""} onChange={(e) => setEditBuf((b) => ({ ...b, stock: Number(e.target.value) }))} className="border border-[#2ECC71] rounded-sm px-2 py-1 text-sm w-20 outline-none" />
-                          : <span className={`font-semibold ${p.stock === 0 ? "text-red-500" : p.stock <= 5 ? "text-amber-600" : "text-gray-700"}`}>{p.stock === 0 ? "Sin stock" : p.stock}</span>
-                        }
+                        <button
+                          onClick={() => setProducts((prev) => prev.map((x) => x.id === p.id ? { ...x, available: !x.available } : x))}
+                          className={`text-xs font-black uppercase tracking-wide px-3 py-1.5 rounded-sm transition-colors ${p.available ? "bg-green-100 text-green-700 hover:bg-green-200" : "bg-red-100 text-red-600 hover:bg-red-200"}`}
+                        >
+                          {p.available ? "Disponible" : "No disponible"}
+                        </button>
                       </td>
                       <td className="px-4 py-3 hidden md:table-cell">
                         {isEditing
