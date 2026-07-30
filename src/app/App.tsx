@@ -20,6 +20,13 @@ interface Product {
   variants?: ProductVariants;
 }
 interface CartItem extends Product { qty: number }
+interface InvoiceData {
+  rut: string;
+  razonSocial: string;
+  giro: string;
+  direccion: string;
+  comuna: string;
+}
 interface Order {
   id: string;
   num: string;
@@ -28,6 +35,8 @@ interface Order {
   items: CartItem[];
   total: number;
   status: "pendiente" | "en preparación" | "listo" | "entregado";
+  docType: "boleta" | "factura";
+  invoiceData?: InvoiceData;
 }
 interface User { name: string; email: string; phone: string; }
 type Page = "home" | "catalog" | "product" | "cart" | "checkout" | "confirmation" | "nosotros" | "admin" | "auth";
@@ -1769,7 +1778,26 @@ function CheckoutPage({
     name: prefill?.name ?? "", email: prefill?.email ?? "", phone: prefill?.phone ?? "",
     rut: "", timeSlot: "", payment: "webpay", docType: "boleta",
   });
+  const [invoiceData, setInvoiceData] = useState<InvoiceData>({
+    rut: "", razonSocial: "", giro: "", direccion: "", comuna: "",
+  });
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const validateRut = (rut: string): boolean => {
+    const clean = rut.replace(/[\.\-]/g, "").toUpperCase();
+    if (clean.length < 2) return false;
+    const body = clean.slice(0, -1);
+    const dv = clean.slice(-1);
+    if (!/^\d+$/.test(body)) return false;
+    let sum = 0, mul = 2;
+    for (let i = body.length - 1; i >= 0; i--) {
+      sum += parseInt(body[i]) * mul;
+      mul = mul === 7 ? 2 : mul + 1;
+    }
+    const expected = 11 - (sum % 11);
+    const expectedDv = expected === 11 ? "0" : expected === 10 ? "K" : String(expected);
+    return dv === expectedDv;
+  };
 
   const slots = [
     "08:00–09:00", "09:00–10:00", "10:00–11:00", "11:00–12:00",
@@ -1783,6 +1811,14 @@ function CheckoutPage({
     if (form.phone.replace(/\D/g, "").length < 9) e.phone = "Teléfono inválido";
     if (!form.rut.trim()) e.rut = "Ingresa tu RUT";
     if (!form.timeSlot) e.timeSlot = "Selecciona un horario de retiro";
+    if (form.docType === "factura") {
+      if (!invoiceData.rut.trim()) e.invoiceRut = "Ingresa el RUT de la empresa";
+      else if (!validateRut(invoiceData.rut)) e.invoiceRut = "RUT inválido, verifica el dígito verificador";
+      if (!invoiceData.razonSocial.trim()) e.razonSocial = "Ingresa la razón social";
+      if (!invoiceData.giro.trim()) e.giro = "Ingresa el giro comercial";
+      if (!invoiceData.direccion.trim()) e.direccion = "Ingresa la dirección";
+      if (!invoiceData.comuna.trim()) e.comuna = "Ingresa la comuna";
+    }
     return e;
   };
 
@@ -1801,6 +1837,8 @@ function CheckoutPage({
       items: cart,
       total: cartTotal,
       status: "pendiente",
+      docType: form.docType as "boleta" | "factura",
+      ...(form.docType === "factura" && { invoiceData }),
     });
     navigate("confirmation");
   };
@@ -1957,6 +1995,83 @@ function CheckoutPage({
                   </div>
                 </label>
               ))}
+
+              {/* Factura fields with smooth transition */}
+              <AnimatePresence>
+                {form.docType === "factura" && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    transition={{ duration: 0.3, ease: "easeInOut" }}
+                    className="overflow-hidden"
+                  >
+                    <div className="pt-2 space-y-3 border-t border-gray-200 mt-1">
+                      <p className="text-xs text-gray-500 font-semibold uppercase tracking-wide pt-1">Datos de facturación</p>
+
+                      <div>
+                        <label className="block text-xs font-semibold text-gray-700 mb-1">RUT empresa *</label>
+                        <input
+                          type="text"
+                          placeholder="12.345.678-9"
+                          value={invoiceData.rut}
+                          onChange={(e) => setInvoiceData((d) => ({ ...d, rut: e.target.value }))}
+                          className={inputCls(errors.invoiceRut)}
+                        />
+                        {errors.invoiceRut && <p className="text-red-500 text-xs mt-1">{errors.invoiceRut}</p>}
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-semibold text-gray-700 mb-1">Razón social *</label>
+                        <input
+                          type="text"
+                          placeholder="Empresa S.A."
+                          value={invoiceData.razonSocial}
+                          onChange={(e) => setInvoiceData((d) => ({ ...d, razonSocial: e.target.value }))}
+                          className={inputCls(errors.razonSocial)}
+                        />
+                        {errors.razonSocial && <p className="text-red-500 text-xs mt-1">{errors.razonSocial}</p>}
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-semibold text-gray-700 mb-1">Giro comercial *</label>
+                        <input
+                          type="text"
+                          placeholder="Construcción y ferretería"
+                          value={invoiceData.giro}
+                          onChange={(e) => setInvoiceData((d) => ({ ...d, giro: e.target.value }))}
+                          className={inputCls(errors.giro)}
+                        />
+                        {errors.giro && <p className="text-red-500 text-xs mt-1">{errors.giro}</p>}
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-semibold text-gray-700 mb-1">Dirección *</label>
+                        <input
+                          type="text"
+                          placeholder="Av. Argentina 123"
+                          value={invoiceData.direccion}
+                          onChange={(e) => setInvoiceData((d) => ({ ...d, direccion: e.target.value }))}
+                          className={inputCls(errors.direccion)}
+                        />
+                        {errors.direccion && <p className="text-red-500 text-xs mt-1">{errors.direccion}</p>}
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-semibold text-gray-700 mb-1">Comuna *</label>
+                        <input
+                          type="text"
+                          placeholder="Valparaíso"
+                          value={invoiceData.comuna}
+                          onChange={(e) => setInvoiceData((d) => ({ ...d, comuna: e.target.value }))}
+                          className={inputCls(errors.comuna)}
+                        />
+                        {errors.comuna && <p className="text-red-500 text-xs mt-1">{errors.comuna}</p>}
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           </div>
         </div>
