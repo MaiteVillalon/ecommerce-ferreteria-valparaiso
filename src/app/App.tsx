@@ -2534,7 +2534,7 @@ function NosotrosPage({ navigate }: { navigate: NavigateFn }) {
 }
 
 // ─── CONTACTO PAGE ───────────────────────────────────────────────────────────
-const EDGE_FUNCTION_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/consultas`;
+const EDGE_FUNCTION_URL = "https://vtrubkecklulilohkgix.supabase.co/functions/v1/consultas";
 
 function ContactoPage({ onSend }: { onSend: (msg: ContactMessage) => void }) {
   const [form, setForm] = useState({ name: "", email: "", phone: "", subject: "", message: "" });
@@ -2564,8 +2564,6 @@ function ContactoPage({ onSend }: { onSend: (msg: ContactMessage) => void }) {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "apikey": import.meta.env.VITE_SUPABASE_ANON_KEY,
-          "Authorization": `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
         },
         body: JSON.stringify({
           nombre: form.name,
