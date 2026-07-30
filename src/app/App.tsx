@@ -39,7 +39,7 @@ interface Order {
   invoiceData?: InvoiceData;
 }
 interface User { name: string; email: string; phone: string; }
-type Page = "home" | "catalog" | "product" | "cart" | "checkout" | "confirmation" | "nosotros" | "admin" | "auth";
+type Page = "home" | "catalog" | "product" | "cart" | "checkout" | "confirmation" | "nosotros" | "contacto" | "admin" | "auth";
 type NavigateFn = (page: Page, product?: Product) => void;
 type AddToCartFn = (product: Product, qty?: number) => void;
 
@@ -597,6 +597,7 @@ const NAV_ITEMS: { label: string; page: Page }[] = [
   { label: "Inicio",    page: "home" },
   { label: "Catálogo",  page: "catalog" },
   { label: "Nosotros",  page: "nosotros" },
+  { label: "Contacto",  page: "contacto" },
 ];
 
 function Header({ navigate, cartCount, currentUser, onLogout }: { navigate: NavigateFn; cartCount: number; currentUser: User | null; onLogout: () => void }) {
@@ -2522,6 +2523,147 @@ function NosotrosPage({ navigate }: { navigate: NavigateFn }) {
   );
 }
 
+// ─── CONTACTO PAGE ───────────────────────────────────────────────────────────
+function ContactoPage() {
+  const [form, setForm] = useState({ name: "", email: "", phone: "", subject: "", message: "" });
+  const [sent, setSent] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const validate = () => {
+    const e: Record<string, string> = {};
+    if (!form.name.trim()) e.name = "Requerido";
+    if (!form.email.includes("@")) e.email = "Email inválido";
+    if (!form.subject.trim()) e.subject = "Requerido";
+    if (!form.message.trim()) e.message = "Requerido";
+    return e;
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const errs = validate();
+    setErrors(errs);
+    if (Object.keys(errs).length > 0) return;
+    setSent(true);
+  };
+
+  const inputCls = (err?: string) =>
+    `w-full rounded-[10px] px-3.5 py-3 text-sm outline-none transition-colors border ${err ? "border-red-400" : "border-[#262626]"} bg-[#1B1B1B] text-[#F2F2F0] placeholder-[#6E6E68] focus:border-[#2ECC71]`;
+
+  return (
+    <div className="bg-[#0A0A0A] min-h-screen py-20 px-4">
+      <div className="max-w-3xl mx-auto">
+
+        {/* Heading */}
+        <h1 className="text-center font-black uppercase tracking-tight text-4xl md:text-5xl text-white mb-4" style={{ fontFamily: "var(--font-display)" }}>
+          Contáctanos
+        </h1>
+        <p className="text-center text-[#9B9B95] text-sm max-w-md mx-auto mb-14 leading-relaxed">
+          ¿Tienes dudas sobre algún producto, tu pedido o el retiro en tienda? Escríbenos y te respondemos a la brevedad.
+        </p>
+
+        {/* SVG world map with Chile pin */}
+        <div className="relative mb-[-60px] z-10">
+          <svg viewBox="0 0 860 400" aria-hidden="true" className="w-full h-auto block">
+            <defs>
+              <pattern id="ctc-dots" width="9" height="9" patternUnits="userSpaceOnUse">
+                <circle cx="1.2" cy="1.2" r="1.2" fill="#2a2a28" />
+              </pattern>
+            </defs>
+            <path d="M60 70 C40 60 90 30 150 35 C210 20 260 55 250 90 C270 110 240 140 210 130 C200 160 150 165 140 140 C100 150 70 120 80 100 C55 100 45 85 60 70Z" fill="url(#ctc-dots)" />
+            <path d="M195 190 C185 175 215 165 230 175 C255 180 260 220 245 250 C255 280 235 330 215 320 C205 350 185 340 190 310 C170 290 175 250 185 230 C175 210 185 195 195 190Z" fill="url(#ctc-dots)" />
+            <path d="M400 60 C390 45 425 35 445 45 C470 35 485 55 470 70 C480 90 455 100 440 85 C415 95 395 80 400 60Z" fill="url(#ctc-dots)" />
+            <path d="M400 110 C390 95 440 90 460 105 C485 105 495 140 480 170 C490 200 465 250 445 240 C440 265 415 260 415 230 C395 210 390 170 400 150 C385 135 390 120 400 110Z" fill="url(#ctc-dots)" />
+            <path d="M480 50 C470 30 540 20 600 35 C660 25 720 45 715 75 C740 85 730 115 700 110 C695 135 660 140 640 120 C610 135 570 120 560 95 C530 100 500 85 490 65 C475 65 475 55 480 50Z" fill="url(#ctc-dots)" />
+            <path d="M660 240 C655 225 695 220 710 235 C725 235 725 260 705 265 C695 280 665 270 665 255 C650 255 655 245 660 240Z" fill="url(#ctc-dots)" />
+            <line x1="207" y1="150" x2="207" y2="300" stroke="#2ECC71" strokeWidth="1.5" opacity="0.7" />
+            <circle cx="207" cy="300" r="4" fill="#2ECC71" opacity="0.35">
+              <animate attributeName="r" values="4;13;4" dur="2.2s" repeatCount="indefinite" />
+              <animate attributeName="opacity" values="0.35;0;0.35" dur="2.2s" repeatCount="indefinite" />
+            </circle>
+            <circle cx="207" cy="300" r="4" fill="#2ECC71" />
+          </svg>
+          <div
+            className="absolute bg-[#1B1B1B] border border-[#262626] text-[#F2F2F0] text-xs font-medium px-3.5 py-1.5 rounded-lg whitespace-nowrap"
+            style={{ left: "24.1%", top: "33%", transform: "translate(-50%, -145%)" }}
+          >
+            Estamos aquí — Valparaíso
+          </div>
+        </div>
+
+        {/* Form card */}
+        <div
+          className="relative rounded-3xl border border-[#262626] bg-[#141414] px-6 md:px-10 py-10 overflow-hidden"
+          style={{
+            backgroundImage:
+              "repeating-linear-gradient(0deg,rgba(255,255,255,0.035) 0 1px,transparent 1px 32px),repeating-linear-gradient(90deg,rgba(255,255,255,0.035) 0 1px,transparent 1px 32px)",
+          }}
+        >
+          {/* mask overlay so grid fades at edges */}
+          <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse 70% 70% at 50% 30%, transparent 40%, #141414 90%)" }} />
+
+          {sent ? (
+            <div className="relative z-10 text-center py-10">
+              <div className="w-14 h-14 bg-[#2ECC71] rounded-full flex items-center justify-center mx-auto mb-4">
+                <Check size={28} className="text-[#0A0A0A]" />
+              </div>
+              <p className="font-black text-white uppercase tracking-tight text-xl mb-2" style={{ fontFamily: "var(--font-display)" }}>
+                ¡Mensaje enviado!
+              </p>
+              <p className="text-[#9B9B95] text-sm">Te responderemos a la brevedad al correo indicado.</p>
+              <button
+                onClick={() => { setSent(false); setForm({ name: "", email: "", phone: "", subject: "", message: "" }); }}
+                className="mt-6 text-xs font-bold text-[#2ECC71] hover:underline uppercase tracking-widest"
+              >
+                Enviar otro mensaje
+              </button>
+            </div>
+          ) : (
+            <form onSubmit={handleSubmit} className="relative z-10 grid grid-cols-1 sm:grid-cols-2 gap-5">
+              {[
+                { label: "Nombre completo", key: "name", placeholder: "Juan Pérez", type: "text" },
+                { label: "Correo electrónico", key: "email", placeholder: "juan@ejemplo.com", type: "email" },
+                { label: "Teléfono", key: "phone", placeholder: "+56 9 1234 5678", type: "tel" },
+                { label: "Motivo de tu consulta", key: "subject", placeholder: "Estado de pedido, disponibilidad…", type: "text" },
+              ].map(({ label, key, placeholder, type }) => (
+                <div key={key} className="flex flex-col gap-2">
+                  <label className="text-[13px] font-medium text-[#F2F2F0]">{label}</label>
+                  <input
+                    type={type}
+                    placeholder={placeholder}
+                    value={(form as any)[key]}
+                    onChange={(e) => setForm((f) => ({ ...f, [key]: e.target.value }))}
+                    className={inputCls(errors[key])}
+                  />
+                  {errors[key] && <p className="text-red-400 text-xs">{errors[key]}</p>}
+                </div>
+              ))}
+
+              <div className="sm:col-span-2 flex flex-col gap-2">
+                <label className="text-[13px] font-medium text-[#F2F2F0]">Mensaje</label>
+                <textarea
+                  placeholder="Cuéntanos en qué te podemos ayudar..."
+                  value={form.message}
+                  onChange={(e) => setForm((f) => ({ ...f, message: e.target.value }))}
+                  rows={4}
+                  className={`${inputCls(errors.message)} resize-y`}
+                />
+                {errors.message && <p className="text-red-400 text-xs">{errors.message}</p>}
+              </div>
+
+              <button
+                type="submit"
+                className="sm:col-span-2 mt-1 bg-[#2ECC71] hover:bg-[#27AE60] text-[#08240F] font-bold text-sm rounded-[10px] py-3.5 transition-colors active:scale-[0.98]"
+              >
+                Enviar mensaje
+              </button>
+            </form>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── ADMIN PAGE ──────────────────────────────────────────────────────────────
 const STATUS_COLORS: Record<Order["status"], string> = {
   pendiente:        "bg-red-100 text-red-700",
@@ -3186,6 +3328,9 @@ export default function App() {
         )}
         {page === "nosotros" && (
           <NosotrosPage navigate={navigate} />
+        )}
+        {page === "contacto" && (
+          <ContactoPage />
         )}
         {page === "auth" && (
           <AuthPage
