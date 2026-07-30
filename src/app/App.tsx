@@ -2582,7 +2582,7 @@ function ContactoPage({ onSend }: { onSend: (msg: ContactMessage) => void }) {
         </p>
 
         {/* World map with sparkle dots */}
-        <div className="relative mb-[-60px] z-10">
+        <div className="relative mb-6 z-10">
           <WorldMapSparkle />
         </div>
 
