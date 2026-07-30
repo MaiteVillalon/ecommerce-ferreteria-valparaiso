@@ -756,9 +756,9 @@ function HomePage({ navigate, addToCart, products }: { navigate: NavigateFn; add
           <div className="flex items-center gap-2 bg-[#2ECC71] text-white text-xs font-black px-3 py-1.5 mb-5 uppercase tracking-widest rounded-md">Compra online · Retira en tienda<Store size={11} /></div>
 
           <h1
-            className="text-4xl md:text-6xl font-black text-white uppercase tracking-tight leading-none mb-3"
+            className="text-4xl md:text-6xl font-black text-white uppercase tracking-tight leading-none mb-3 text-center w-full"
             style={{ fontFamily: "var(--font-display)" }}
-          >&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Bienvenido a<br /></h1>
+          >Bienvenido a<br />Ferretería La Nonna</h1>
           <p className="text-gray-400 text-sm md:text-base mb-7 max-w-md">
             Herramientas, materiales y más. Pedido listo en tienda el mismo día.
           </p>
