@@ -2307,7 +2307,7 @@ function NosotrosPage({ navigate }: { navigate: NavigateFn }) {
   }, []);
 
   return (
-    <div className="bg-[#0A0A0A] min-h-screen">
+    <div className="bg-[#F8F7F4] min-h-screen">
 
       {/* ── Encabezado ── */}
       <div className="max-w-5xl mx-auto px-4 pt-20 pb-10 text-center">
@@ -2315,7 +2315,7 @@ function NosotrosPage({ navigate }: { navigate: NavigateFn }) {
           Quiénes somos
         </p>
         <h1
-          className="text-4xl md:text-6xl font-black text-white uppercase tracking-tight leading-none"
+          className="text-4xl md:text-6xl font-black text-[#1C1C1C] uppercase tracking-tight leading-none"
           style={{ fontFamily: "var(--font-display)" }}
         >
           Nuestra historia
@@ -2337,7 +2337,7 @@ function NosotrosPage({ navigate }: { navigate: NavigateFn }) {
           {/* Foto — arriba en mobile, derecha en desktop */}
           <div className="w-full md:order-2 md:w-2/5 shrink-0">
             <div
-              className="relative w-full overflow-hidden rounded-2xl bg-[#1A1A1A] border border-[#262626]"
+              className="relative w-full overflow-hidden rounded-2xl bg-[#E8E6E1] border border-[#DDD9D0]"
               style={{ aspectRatio: "4/5" }}
             >
               <img
@@ -2347,7 +2347,7 @@ function NosotrosPage({ navigate }: { navigate: NavigateFn }) {
                 onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
               />
               {/* Placeholder visible mientras no haya foto */}
-              <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-[#3A3A3A] pointer-events-none">
+              <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-[#AAAAAA] pointer-events-none">
                 <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2">
                   <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/>
                   <polyline points="21 15 16 10 5 21"/>
@@ -2363,22 +2363,22 @@ function NosotrosPage({ navigate }: { navigate: NavigateFn }) {
 
           {/* Texto — orden normal en ambos breakpoints */}
           <div className="md:order-1 md:w-3/5 flex flex-col gap-6 pt-2">
-            <p className="text-[#D4D4CC] text-base md:text-lg leading-relaxed">
+            <p className="text-[#1C1C1C] text-base md:text-lg leading-relaxed">
               Ferretería La Nonna es un proyecto de familia, hecho por porteños de toda la vida.
               Somos Jacqueline Díaz y Humberto Palma, junto a nuestros tres hijos.
             </p>
-            <p className="text-[#9B9B95] text-sm md:text-base leading-relaxed">
+            <p className="text-[#555550] text-sm md:text-base leading-relaxed">
               Antes de abrir el local, Humberto se dedicó casi 20 años al rubro de la ferretería
               y venta de productos del área — un camino largo que nos dio la experiencia y el
               cariño por este oficio antes de animarnos a tener nuestro propio espacio.
             </p>
-            <p className="text-[#9B9B95] text-sm md:text-base leading-relaxed">
+            <p className="text-[#555550] text-sm md:text-base leading-relaxed">
               Desde 2010 vivimos en Placilla de Peñuelas, y fue ahí donde nació la idea de
               abrir Ferretería La Nonna. Partimos con un local pequeño en la Galería Celeste,
               y con el tiempo — gracias a la confianza de nuestros clientes — nos cambiamos
               dentro de la misma galería a un espacio mucho más grande, donde estamos hoy.
             </p>
-            <p className="text-[#D4D4CC] text-sm md:text-base leading-relaxed border-l-2 border-[#2ECC71] pl-4 italic">
+            <p className="text-[#1C1C1C] text-sm md:text-base leading-relaxed border-l-2 border-[#2ECC71] pl-4 italic">
               Detrás de cada venta hay una familia que conoce el rubro de primera mano, y que
               trabaja todos los días para que encuentres justo lo que necesitas.
             </p>
@@ -2388,14 +2388,14 @@ function NosotrosPage({ navigate }: { navigate: NavigateFn }) {
       </section>
 
       {/* ── CTA ── */}
-      <section className="border-t border-[#1E1E1E] py-14 px-4 text-center">
+      <section className="border-t border-[#E0DDD8] bg-white py-14 px-4 text-center">
         <p
-          className="text-2xl md:text-3xl font-black text-white uppercase tracking-tight mb-3"
+          className="text-2xl md:text-3xl font-black text-[#1C1C1C] uppercase tracking-tight mb-3"
           style={{ fontFamily: "var(--font-display)" }}
         >
           ¿Tienes un proyecto en mente?
         </p>
-        <p className="text-[#9B9B95] text-sm mb-8 max-w-sm mx-auto leading-relaxed">
+        <p className="text-[#777772] text-sm mb-8 max-w-sm mx-auto leading-relaxed">
           Revisa el catálogo, arma tu pedido y retíralo en tienda. Si tienes dudas, escríbenos.
         </p>
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
@@ -2407,7 +2407,7 @@ function NosotrosPage({ navigate }: { navigate: NavigateFn }) {
           </button>
           <button
             onClick={() => navigate("contacto")}
-            className="border border-[#2E2E2E] hover:border-[#2ECC71] text-[#9B9B95] hover:text-white px-8 py-3.5 font-black uppercase tracking-widest text-sm transition-colors rounded-sm"
+            className="border border-gray-300 hover:border-[#2ECC71] text-[#555550] hover:text-[#1C1C1C] px-8 py-3.5 font-black uppercase tracking-widest text-sm transition-colors rounded-sm"
           >
             Contáctanos
           </button>
