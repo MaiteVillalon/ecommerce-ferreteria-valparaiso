@@ -1767,7 +1767,7 @@ function CheckoutPage({
 }) {
   const [form, setForm] = useState({
     name: prefill?.name ?? "", email: prefill?.email ?? "", phone: prefill?.phone ?? "",
-    rut: "", timeSlot: "", payment: "webpay",
+    rut: "", timeSlot: "", payment: "webpay", docType: "boleta",
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -1901,6 +1901,54 @@ function CheckoutPage({
                     value={opt.id}
                     checked={form.payment === opt.id}
                     onChange={() => setForm((f) => ({ ...f, payment: opt.id }))}
+                    className="mt-0.5 accent-[#2ECC71]"
+                  />
+                  <div>
+                    <p className="font-bold text-sm text-gray-900">{opt.label}</p>
+                    <p className="text-xs text-gray-500 mt-0.5">{opt.sub}</p>
+                  </div>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          {/* Document type */}
+          <div className="border border-gray-200 bg-white">
+            <div className="px-5 py-3 border-b border-gray-200 bg-gray-50">
+              <h2
+                className="font-black uppercase tracking-tight text-base"
+                style={{ fontFamily: "var(--font-display)" }}
+              >
+                Documento tributario
+              </h2>
+            </div>
+            <div className="p-5 space-y-2.5">
+              {[
+                {
+                  id: "boleta",
+                  label: "Boleta",
+                  sub: "Documento para uso personal o consumidor final",
+                },
+                {
+                  id: "factura",
+                  label: "Factura",
+                  sub: "Documento para empresas o uso tributario (requiere RUT empresa)",
+                },
+              ].map((opt) => (
+                <label
+                  key={opt.id}
+                  className={`flex items-start gap-3 p-3.5 border cursor-pointer transition-colors ${
+                    form.docType === opt.id
+                      ? "border-[#2ECC71] bg-orange-50"
+                      : "border-gray-200 hover:border-gray-300"
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="docType"
+                    value={opt.id}
+                    checked={form.docType === opt.id}
+                    onChange={() => setForm((f) => ({ ...f, docType: opt.id }))}
                     className="mt-0.5 accent-[#2ECC71]"
                   />
                   <div>
