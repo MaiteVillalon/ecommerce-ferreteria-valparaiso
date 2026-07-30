@@ -2366,18 +2366,18 @@ function NosotrosPage({ navigate }: { navigate: NavigateFn }) {
           <div className="md:order-1 md:w-3/5 flex flex-col gap-6 pt-2">
             <p className="text-[#1C1C1C] text-base md:text-lg leading-relaxed">
               Ferretería La Nonna es un proyecto de familia, hecho por porteños de toda la vida.
-              Somos Jacqueline Díaz y Humberto Palma, junto a nuestros tres hijos.
+              Son Jacqueline Díaz y Humberto Palma, junto a sus tres hijos.
             </p>
             <p className="text-[#555550] text-sm md:text-base leading-relaxed">
               Antes de abrir el local, Humberto se dedicó casi 20 años al rubro de la ferretería
-              y venta de productos del área — un camino largo que nos dio la experiencia y el
-              cariño por este oficio antes de animarnos a tener nuestro propio espacio.
+              y venta de productos del área — un camino largo que les dio la experiencia y el
+              cariño por este oficio antes de animarse a tener su propio espacio.
             </p>
             <p className="text-[#555550] text-sm md:text-base leading-relaxed">
-              Desde 2010 vivimos en Placilla de Peñuelas, y fue ahí donde nació la idea de
-              abrir Ferretería La Nonna. Partimos con un local pequeño en la Galería Celeste,
-              y con el tiempo — gracias a la confianza de nuestros clientes — nos cambiamos
-              dentro de la misma galería a un espacio mucho más grande, donde estamos hoy.
+              Desde 2010 viven en Placilla de Peñuelas, y fue ahí donde nació la idea de
+              abrir Ferretería La Nonna. Partieron con un local pequeño en la Galería Celeste,
+              y con el tiempo — gracias a la confianza de sus clientes — se cambiaron
+              dentro de la misma galería a un espacio mucho más grande, donde están hoy.
             </p>
             <p className="text-[#1C1C1C] text-sm md:text-base leading-relaxed border-l-2 border-[#2ECC71] pl-4 italic">
               Detrás de cada venta hay una familia que conoce el rubro de primera mano, y que
