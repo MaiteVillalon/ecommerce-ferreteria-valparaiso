@@ -1431,7 +1431,15 @@ function AuthPage({ onGuest }: { onGuest: () => void }) {
     setSubmitting(true);
     const { error } = await supabase.auth.signInWithPassword({ email: form.email, password: form.password });
     setSubmitting(false);
-    if (error) { setErrors({ email: "Correo o contraseña incorrectos" }); return; }
+    if (error) {
+      const msg = error.message.toLowerCase().includes("email not confirmed")
+        ? "Debes confirmar tu correo antes de iniciar sesión. Revisa tu bandeja de entrada."
+        : error.message.toLowerCase().includes("invalid login credentials")
+          ? "Correo o contraseña incorrectos"
+          : error.message;
+      setErrors({ email: msg });
+      return;
+    }
     routerNavigate(from, { replace: true });
   }
 
