@@ -3079,7 +3079,19 @@ function AdminPage({
                             <button onClick={() => setEditingId(null)} className="text-xs text-gray-400 hover:text-gray-700 px-2">Cancelar</button>
                           </div>
                         ) : (
-                          <button onClick={() => startEdit(p)} className="text-xs font-semibold text-[#2ECC71] hover:underline">Editar</button>
+                          <div className="flex gap-3 justify-end">
+                            <button onClick={() => startEdit(p)} className="text-xs font-semibold text-[#2ECC71] hover:underline">Editar</button>
+                            <button
+                              onClick={() => {
+                                if (confirm(`¿Eliminar "${p.name}"?`)) {
+                                  setProducts((prev) => prev.filter((x) => x.id !== p.id));
+                                }
+                              }}
+                              className="text-xs font-semibold text-red-400 hover:text-red-600 hover:underline"
+                            >
+                              Eliminar
+                            </button>
+                          </div>
                         )}
                       </td>
                     </tr>
