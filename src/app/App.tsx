@@ -1,5 +1,4 @@
 import { useState, useRef, useEffect } from "react";
-import emailjs from "@emailjs/browser";
 import { motion, AnimatePresence } from "motion/react";
 import {
   ShoppingCart, Search, MapPin, Clock, Phone, X, Check,
@@ -2535,17 +2534,19 @@ function NosotrosPage({ navigate }: { navigate: NavigateFn }) {
 }
 
 // ─── CONTACTO PAGE ───────────────────────────────────────────────────────────
+const EDGE_FUNCTION_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/consultas`;
+
 function ContactoPage({ onSend }: { onSend: (msg: ContactMessage) => void }) {
   const [form, setForm] = useState({ name: "", email: "", phone: "", subject: "", message: "" });
   const [sent, setSent] = useState(false);
   const [sending, setSending] = useState(false);
+  const [serverError, setServerError] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const validate = () => {
     const e: Record<string, string> = {};
     if (!form.name.trim()) e.name = "Requerido";
     if (!form.email.includes("@")) e.email = "Email inválido";
-    if (!form.subject.trim()) e.subject = "Requerido";
     if (!form.message.trim()) e.message = "Requerido";
     return e;
   };
@@ -2554,34 +2555,51 @@ function ContactoPage({ onSend }: { onSend: (msg: ContactMessage) => void }) {
     e.preventDefault();
     const errs = validate();
     setErrors(errs);
+    setServerError("");
     if (Object.keys(errs).length > 0) return;
 
     setSending(true);
     try {
-      await emailjs.send(
-        import.meta.env.VITE_EMAILJS_SERVICE_ID,
-        import.meta.env.VITE_EMAILJS_TEMPLATE_ID,
-        {
-          from_name: form.name,
-          from_email: form.email,
-          phone: form.phone,
-          subject: form.subject,
-          message: form.message,
+      const res = await fetch(EDGE_FUNCTION_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "apikey": import.meta.env.VITE_SUPABASE_ANON_KEY,
+          "Authorization": `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
         },
-        import.meta.env.VITE_EMAILJS_PUBLIC_KEY,
-      );
-    } catch {
-      // Si EmailJS no está configurado, igual guardamos en admin
-    }
+        body: JSON.stringify({
+          nombre: form.name,
+          email: form.email,
+          telefono: form.phone,
+          asunto: form.subject,
+          mensaje: form.message,
+        }),
+      });
 
-    onSend({
-      id: Date.now().toString(),
-      date: new Date().toLocaleString("es-CL"),
-      ...form,
-      read: false,
-    });
-    setSending(false);
-    setSent(true);
+      const data = await res.json();
+
+      if (!res.ok) {
+        setServerError(data.error ?? "Error al enviar. Intenta de nuevo.");
+        setSending(false);
+        return;
+      }
+
+      onSend({
+        id: Date.now().toString(),
+        date: new Date().toLocaleString("es-CL"),
+        name: form.name,
+        email: form.email,
+        phone: form.phone,
+        subject: form.subject,
+        message: form.message,
+        read: false,
+      });
+      setSent(true);
+    } catch {
+      setServerError("No se pudo conectar. Verifica tu conexión e intenta de nuevo.");
+    } finally {
+      setSending(false);
+    }
   };
 
   const inputCls = (err?: string) =>
@@ -2687,6 +2705,10 @@ function ContactoPage({ onSend }: { onSend: (msg: ContactMessage) => void }) {
                 />
                 {errors.message && <p className="text-red-400 text-xs">{errors.message}</p>}
               </div>
+
+              {serverError && (
+                <p className="sm:col-span-2 text-red-400 text-sm text-center">{serverError}</p>
+              )}
 
               <button
                 type="submit"
