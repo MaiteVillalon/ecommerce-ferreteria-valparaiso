@@ -2561,11 +2561,40 @@ function OrderCard({ order, updateStatus }: { order: Order; updateStatus: (id: s
         </div>
       </div>
       <div className="grid md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-gray-100">
-        <div className="px-5 py-3.5">
-          <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1.5">Cliente</p>
-          <p className="font-semibold text-sm text-[#1C1C1C]">{order.customer.name}</p>
-          <p className="text-xs text-gray-400 mt-0.5">{order.customer.email} · {order.customer.phone}</p>
-          <p className="text-xs text-gray-400 mt-0.5">Retiro: {order.customer.address}</p>
+        <div className="px-5 py-3.5 space-y-3">
+          <div>
+            <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1.5">Cliente</p>
+            <p className="font-semibold text-sm text-[#1C1C1C]">{order.customer.name}</p>
+            <p className="text-xs text-gray-400 mt-0.5">{order.customer.email} · {order.customer.phone}</p>
+            <p className="text-xs text-gray-400 mt-0.5">Retiro: {order.customer.address}</p>
+          </div>
+
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1">Código de retiro</p>
+              <p className="font-black text-xl text-[#2ECC71]" style={{ fontFamily: "var(--font-mono)" }}>
+                {order.num.replace("LN-", "")}
+              </p>
+            </div>
+            <div className="text-right">
+              <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1">Documento</p>
+              <span className={`text-xs font-black uppercase px-2.5 py-1 rounded-sm ${order.docType === "factura" ? "bg-blue-100 text-blue-700" : "bg-gray-100 text-gray-600"}`}>
+                {order.docType === "factura" ? "Factura" : "Boleta"}
+              </span>
+            </div>
+          </div>
+
+          {order.docType === "factura" && order.invoiceData && (
+            <div className="border border-blue-200 bg-blue-50 rounded-sm p-3">
+              <p className="text-[10px] font-black uppercase tracking-widest text-blue-500 mb-2">Datos de facturación</p>
+              <div className="space-y-0.5 text-xs text-gray-700">
+                <p><span className="font-semibold">RUT:</span> {order.invoiceData.rut}</p>
+                <p><span className="font-semibold">Razón social:</span> {order.invoiceData.razonSocial}</p>
+                <p><span className="font-semibold">Giro:</span> {order.invoiceData.giro}</p>
+                <p><span className="font-semibold">Dirección:</span> {order.invoiceData.direccion}, {order.invoiceData.comuna}</p>
+              </div>
+            </div>
+          )}
         </div>
         <div className="px-5 py-3.5">
           <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1.5">Productos</p>
