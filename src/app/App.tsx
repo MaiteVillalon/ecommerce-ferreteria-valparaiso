@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { ImageWithFallback } from "@/app/components/figma/ImageWithFallback";
 import { HeroSlideshow } from "@/app/components/HeroSlideshow";
+import { WorldMapSparkle } from "@/app/components/WorldMapSparkle";
 import storeFront from "@/imports/Captura_de_pantalla_2026-07-26_010939.png";
 import logoImg from "@/imports/ferreteria-la-nonna-logo.png";
 
@@ -2580,33 +2581,9 @@ function ContactoPage({ onSend }: { onSend: (msg: ContactMessage) => void }) {
           ¿Tienes dudas sobre algún producto, tu pedido o el retiro en tienda? Escríbenos y te respondemos a la brevedad.
         </p>
 
-        {/* SVG world map with Chile pin */}
+        {/* World map with sparkle dots */}
         <div className="relative mb-[-60px] z-10">
-          <svg viewBox="0 0 860 400" aria-hidden="true" className="w-full h-auto block">
-            <defs>
-              <pattern id="ctc-dots" width="9" height="9" patternUnits="userSpaceOnUse">
-                <circle cx="1.2" cy="1.2" r="1.2" fill="#2a2a28" />
-              </pattern>
-            </defs>
-            <path d="M60 70 C40 60 90 30 150 35 C210 20 260 55 250 90 C270 110 240 140 210 130 C200 160 150 165 140 140 C100 150 70 120 80 100 C55 100 45 85 60 70Z" fill="url(#ctc-dots)" />
-            <path d="M195 190 C185 175 215 165 230 175 C255 180 260 220 245 250 C255 280 235 330 215 320 C205 350 185 340 190 310 C170 290 175 250 185 230 C175 210 185 195 195 190Z" fill="url(#ctc-dots)" />
-            <path d="M400 60 C390 45 425 35 445 45 C470 35 485 55 470 70 C480 90 455 100 440 85 C415 95 395 80 400 60Z" fill="url(#ctc-dots)" />
-            <path d="M400 110 C390 95 440 90 460 105 C485 105 495 140 480 170 C490 200 465 250 445 240 C440 265 415 260 415 230 C395 210 390 170 400 150 C385 135 390 120 400 110Z" fill="url(#ctc-dots)" />
-            <path d="M480 50 C470 30 540 20 600 35 C660 25 720 45 715 75 C740 85 730 115 700 110 C695 135 660 140 640 120 C610 135 570 120 560 95 C530 100 500 85 490 65 C475 65 475 55 480 50Z" fill="url(#ctc-dots)" />
-            <path d="M660 240 C655 225 695 220 710 235 C725 235 725 260 705 265 C695 280 665 270 665 255 C650 255 655 245 660 240Z" fill="url(#ctc-dots)" />
-            <line x1="207" y1="150" x2="207" y2="300" stroke="#2ECC71" strokeWidth="1.5" opacity="0.7" />
-            <circle cx="207" cy="300" r="4" fill="#2ECC71" opacity="0.35">
-              <animate attributeName="r" values="4;13;4" dur="2.2s" repeatCount="indefinite" />
-              <animate attributeName="opacity" values="0.35;0;0.35" dur="2.2s" repeatCount="indefinite" />
-            </circle>
-            <circle cx="207" cy="300" r="4" fill="#2ECC71" />
-          </svg>
-          <div
-            className="absolute bg-[#1B1B1B] border border-[#262626] text-[#F2F2F0] text-xs font-medium px-3.5 py-1.5 rounded-lg whitespace-nowrap"
-            style={{ left: "24.1%", top: "33%", transform: "translate(-50%, -145%)" }}
-          >
-            Estamos aquí — Valparaíso
-          </div>
+          <WorldMapSparkle />
         </div>
 
         {/* Form card */}
