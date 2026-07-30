@@ -2135,6 +2135,10 @@ function CheckoutPage({
 function ConfirmationPage({ orderNum, order, navigate }: { orderNum: string; order: Order | null; navigate: NavigateFn }) {
   const pickupCode = orderNum.replace("LN-", "");
 
+  const handleDownloadPdf = () => {
+    window.print();
+  };
+
   return (
     <div className="max-w-xl mx-auto px-4 py-14">
       <div className="text-center mb-8">
@@ -2166,6 +2170,14 @@ function ConfirmationPage({ orderNum, order, navigate }: { orderNum: string; ord
             </p>
           </div>
         </div>
+        {order && (
+          <div className="px-5 py-3 border-b border-gray-200 flex items-center justify-between">
+            <p className="text-xs font-black uppercase tracking-widest text-gray-400">Documento tributario</p>
+            <span className={`text-xs font-black uppercase tracking-widest px-2.5 py-1 rounded-sm ${order.docType === "factura" ? "bg-blue-100 text-blue-700" : "bg-gray-100 text-gray-600"}`}>
+              {order.docType === "factura" ? "Factura" : "Boleta"}
+            </span>
+          </div>
+        )}
 
         {/* Items del pedido */}
         {order && order.items.length > 0 && (
@@ -2229,12 +2241,18 @@ function ConfirmationPage({ orderNum, order, navigate }: { orderNum: string; ord
         </div>
       </div>
 
-      <div className="flex flex-col sm:flex-row gap-3">
+      <div className="flex flex-col sm:flex-row gap-3 no-print">
         <button
           onClick={() => navigate("home")}
           className="flex-1 border-2 border-[#1C1C1C] py-3.5 font-black text-sm uppercase tracking-widest hover:bg-[#1C1C1C] hover:text-white transition-colors"
         >
           Volver al inicio
+        </button>
+        <button
+          onClick={handleDownloadPdf}
+          className="flex-1 border-2 border-[#1C1C1C] py-3.5 font-black text-sm uppercase tracking-widest hover:bg-[#1C1C1C] hover:text-white transition-colors"
+        >
+          Descargar ticket PDF
         </button>
         <button
           onClick={() => navigate("catalog")}
