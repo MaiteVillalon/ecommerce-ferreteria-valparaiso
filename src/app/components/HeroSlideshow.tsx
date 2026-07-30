@@ -87,6 +87,11 @@ export function HeroSlideshow({ onSearch, searchVal, setSearchVal }: HeroSlidesh
       {/* ── Contenido ── */}
       <div className="relative z-10 flex flex-col items-center text-center px-4 py-20 max-w-3xl mx-auto">
 
+        {/* Badge */}
+        <div className="flex items-center gap-2 bg-[#2ECC71] text-white text-xs font-black px-3 py-1.5 mb-5 uppercase tracking-widest rounded-md">
+          Compra online y retira en tienda
+        </div>
+
         {/* Eyebrow */}
         {reduced ? (
           <p className="text-[#2ECC71] text-xs font-black uppercase tracking-widest mb-4">
