@@ -1,5 +1,7 @@
-import { useState, useRef, useEffect } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
+import { Routes, Route, Link, Navigate, useLocation, useMatch, useNavigate } from "react-router";
+import { Toaster } from "sonner";
 import {
   ShoppingCart, Search, MapPin, Clock, Phone, X, Check,
   ChevronDown, ChevronUp, Store, ArrowLeft, ChevronRight,
@@ -11,36 +13,27 @@ import { HeroSlideshow } from "@/app/components/HeroSlideshow";
 import { WorldMapSparkle } from "@/app/components/WorldMapSparkle";
 import storeFront from "@/imports/Captura_de_pantalla_2026-07-26_010939.png";
 import logoImg from "@/imports/ferreteria-la-nonna-logo.png";
+import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/app/hooks/useAuth";
+import type { Cliente } from "@/lib/clientes";
+import {
+  crearPedido, listarTodosPedidos, actualizarEstadoPedido,
+  type Pedido, type EstadoPedido, type TipoDocumento,
+} from "@/lib/pedidos";
+import { EstadoBadge } from "@/app/components/EstadoBadge";
+import { MiCuentaPage } from "@/app/pages/cuenta/MiCuentaPage";
+import { PedidoDetallePage } from "@/app/pages/cuenta/PedidoDetallePage";
 
 // ─── TYPES ──────────────────────────────────────────────────────────────────
 interface Spec { key: string; value: string }
 interface ProductVariants { type: "color" | "size"; options: string[] }
-interface Product {
+export interface Product {
   id: number; sku: string; name: string; brand: string; category: string;
   price: number; originalPrice?: number; available: boolean; img: string;
   description: string; specs: Spec[]; badge?: string; isOffer?: boolean;
   variants?: ProductVariants;
 }
-interface CartItem extends Product { qty: number }
-interface InvoiceData {
-  rut: string;
-  razonSocial: string;
-  giro: string;
-  direccion: string;
-  comuna: string;
-}
-interface Order {
-  id: string;
-  num: string;
-  date: string;
-  customer: { name: string; email: string; phone: string; address: string };
-  items: CartItem[];
-  total: number;
-  status: "pendiente" | "en preparación" | "listo" | "entregado";
-  docType: "boleta" | "factura";
-  invoiceData?: InvoiceData;
-}
-interface User { name: string; email: string; phone: string; }
+export interface CartItem extends Product { qty: number }
 interface ContactMessage {
   id: string;
   date: string;
@@ -51,9 +44,15 @@ interface ContactMessage {
   message: string;
   read: boolean;
 }
-type Page = "home" | "catalog" | "product" | "cart" | "checkout" | "confirmation" | "nosotros" | "contacto" | "admin" | "auth";
+type Page = "home" | "catalog" | "product" | "cart" | "checkout" | "confirmation" | "nosotros" | "contacto" | "admin" | "auth" | "mi-cuenta";
 type NavigateFn = (page: Page, product?: Product) => void;
-type AddToCartFn = (product: Product, qty?: number) => void;
+export type AddToCartFn = (product: Product, qty?: number) => void;
+
+const PAGE_PATHS: Record<Page, string> = {
+  home: "/", catalog: "/catalogo", product: "/catalogo", cart: "/carro",
+  checkout: "/checkout", confirmation: "/confirmacion", nosotros: "/nosotros",
+  contacto: "/contacto", admin: "/admin", auth: "/auth", "mi-cuenta": "/mi-cuenta",
+};
 
 // ─── HELPERS ────────────────────────────────────────────────────────────────
 const fmt = (n: number) => `$${n.toLocaleString("es-CL")}`;
@@ -612,7 +611,7 @@ const NAV_ITEMS: { label: string; page: Page }[] = [
   { label: "Contacto",  page: "contacto" },
 ];
 
-function Header({ navigate, cartCount, currentUser, onLogout }: { navigate: NavigateFn; cartCount: number; currentUser: User | null; onLogout: () => void }) {
+function Header({ navigate, cartCount, cliente, onLogout }: { navigate: NavigateFn; cartCount: number; cliente: Cliente | null; onLogout: () => void }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [highlightStyle, setHighlightStyle] = useState<{ width: number; x: number } | null>(null);
   const navRef = useRef<HTMLDivElement>(null);
@@ -667,12 +666,14 @@ function Header({ navigate, cartCount, currentUser, onLogout }: { navigate: Navi
           </div>
 
           {/* user indicator */}
-          {currentUser ? (
+          {cliente ? (
             <div className="hidden md:flex items-center gap-2 px-3 py-1.5 text-[12px] text-gray-300">
-              <div className="w-5 h-5 rounded-full bg-[#2ECC71] flex items-center justify-center text-white font-black text-[9px]">
-                {currentUser.name.charAt(0).toUpperCase()}
-              </div>
-              <span className="max-w-[80px] truncate">{currentUser.name.split(" ")[0]}</span>
+              <button onClick={() => navigate("mi-cuenta")} className="flex items-center gap-2 hover:text-white transition-colors">
+                <div className="w-5 h-5 rounded-full bg-[#2ECC71] flex items-center justify-center text-white font-black text-[9px]">
+                  {(cliente.nombre || cliente.email).charAt(0).toUpperCase()}
+                </div>
+                <span className="max-w-[80px] truncate">{(cliente.nombre || cliente.email).split(" ")[0]}</span>
+              </button>
               <button onClick={onLogout} className="text-gray-500 hover:text-white text-[10px] transition-colors">(salir)</button>
             </div>
           ) : null}
@@ -1402,17 +1403,16 @@ function LockButton({ label }: { label: string }) {
 }
 
 // ─── AUTH PAGE ───────────────────────────────────────────────────────────────
-function AuthPage({
-  navigate, onAuth, onGuest,
-}: {
-  navigate: NavigateFn;
-  onAuth: (user: User) => void;
-  onGuest: () => void;
-}) {
+function AuthPage({ onGuest }: { onGuest: () => void }) {
+  const routerNavigate = useNavigate();
+  const location = useLocation();
+  const from = (location.state as { from?: string } | null)?.from ?? "/checkout";
+
   const [mode, setMode] = useState<"login" | "register">("login");
   const [form, setForm] = useState({ name: "", email: "", phone: "", password: "", confirm: "" });
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [registered, setRegistered] = useState<User[]>([]);
+  const [submitting, setSubmitting] = useState(false);
+  const [confirmEmailSent, setConfirmEmailSent] = useState(false);
 
   const set = (k: string) => (e: React.ChangeEvent<HTMLInputElement>) =>
     setForm((f) => ({ ...f, [k]: e.target.value }));
@@ -1421,18 +1421,21 @@ function AuthPage({
   const fieldCls = (err?: string) =>
     `w-full border ${err ? "border-red-400" : "border-gray-200"} rounded-sm px-3 py-2.5 text-sm outline-none focus:border-[#2ECC71] transition-colors bg-[#ECEAE4]`;
 
-  function handleLogin(e: React.FormEvent) {
+  async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
     const errs: Record<string, string> = {};
     if (!form.email.trim()) errs.email = "Ingresa tu correo";
     if (!form.password)     errs.password = "Ingresa tu contraseña";
     if (Object.keys(errs).length) { setErrors(errs); return; }
-    const found = registered.find((u) => u.email === form.email);
-    if (!found) { setErrors({ email: "No existe una cuenta con ese correo" }); return; }
-    onAuth(found);
+
+    setSubmitting(true);
+    const { error } = await supabase.auth.signInWithPassword({ email: form.email, password: form.password });
+    setSubmitting(false);
+    if (error) { setErrors({ email: "Correo o contraseña incorrectos" }); return; }
+    routerNavigate(from, { replace: true });
   }
 
-  function handleRegister(e: React.FormEvent) {
+  async function handleRegister(e: React.FormEvent) {
     e.preventDefault();
     const errs: Record<string, string> = {};
     if (!form.name.trim())  errs.name    = "Ingresa tu nombre";
@@ -1440,11 +1443,18 @@ function AuthPage({
     if (!form.phone.trim()) errs.phone   = "Ingresa tu teléfono";
     if (!form.password)     errs.password = "Ingresa una contraseña";
     if (form.password !== form.confirm) errs.confirm = "Las contraseñas no coinciden";
-    if (registered.find((u) => u.email === form.email)) errs.email = "Ya existe una cuenta con ese correo";
     if (Object.keys(errs).length) { setErrors(errs); return; }
-    const user: User = { name: form.name, email: form.email, phone: form.phone };
-    setRegistered((prev) => [...prev, user]);
-    onAuth(user);
+
+    setSubmitting(true);
+    const { data, error } = await supabase.auth.signUp({
+      email: form.email,
+      password: form.password,
+      options: { data: { nombre: form.name, telefono: form.phone } },
+    });
+    setSubmitting(false);
+    if (error) { setErrors({ email: error.message.includes("already registered") ? "Ya existe una cuenta con ese correo" : error.message }); return; }
+    if (!data.session) { setConfirmEmailSent(true); return; }
+    routerNavigate(from, { replace: true });
   }
 
   return (
@@ -1469,6 +1479,21 @@ function AuthPage({
             <p className="font-semibold text-xs uppercase tracking-[0.2em] text-[#2ECC71]">Acceso clientes</p>
           </div>
 
+          {confirmEmailSent ? (
+            <div className="text-center py-4">
+              <p className="font-bold text-sm text-[#1C1C1C] mb-2">Revisa tu correo</p>
+              <p className="text-sm text-gray-500 mb-5">
+                Te enviamos un enlace de confirmación a <strong>{form.email}</strong>. Confírmalo y luego inicia sesión.
+              </p>
+              <button
+                onClick={() => { setConfirmEmailSent(false); setMode("login"); }}
+                className="text-xs font-bold text-[#2ECC71] hover:underline"
+              >
+                Ya confirmé, iniciar sesión
+              </button>
+            </div>
+          ) : (
+          <>
           {/* tabs */}
           <div className="flex border-b border-gray-100 mb-6">
             {(["login", "register"] as const).map((m) => (
@@ -1485,6 +1510,7 @@ function AuthPage({
           {/* login */}
           {mode === "login" && (
             <form onSubmit={handleLogin} className="space-y-4">
+              <fieldset disabled={submitting} className="space-y-4">
               <div>
                 <label className="text-[11px] font-bold uppercase tracking-widest text-gray-500 block mb-1.5">Correo</label>
                 <input value={form.email} onChange={set("email")} placeholder="tucorreo@mail.com" className={fieldCls(errors.email)} />
@@ -1497,12 +1523,14 @@ function AuthPage({
                 <p className="text-[11px] text-gray-400 mt-1.5">Toca la llave para ver tu contraseña</p>
               </div>
               <LockButton label="Iniciar sesión y continuar" />
+              </fieldset>
             </form>
           )}
 
           {/* register */}
           {mode === "register" && (
             <form onSubmit={handleRegister} className="space-y-3">
+              <fieldset disabled={submitting} className="space-y-3">
               <div>
                 <label className="text-[11px] font-bold uppercase tracking-widest text-gray-500 block mb-1.5">Nombre completo</label>
                 <input value={form.name} onChange={set("name")} placeholder="Juan Pérez" className={fieldCls(errors.name)} />
@@ -1531,6 +1559,7 @@ function AuthPage({
               <div className="pt-1">
                 <LockButton label="Crear cuenta y continuar" />
               </div>
+              </fieldset>
             </form>
           )}
 
@@ -1543,7 +1572,7 @@ function AuthPage({
 
           {/* guest */}
           <button
-            onClick={onGuest}
+            onClick={() => { onGuest(); routerNavigate(from, { replace: true }); }}
             className="w-full border border-gray-200 hover:border-gray-300 text-[#1C1C1C] py-2.5 font-semibold text-sm rounded-sm transition-colors flex items-center justify-center gap-2 hover:bg-gray-50"
           >
             <Package size={14} />
@@ -1552,10 +1581,12 @@ function AuthPage({
           <p className="text-center text-[11px] text-gray-400 mt-3">
             Sin cuenta no podrás ver el historial de tus pedidos.
           </p>
+          </>
+          )}
         </div>
 
         {/* back link */}
-        <button onClick={() => navigate("cart")} className="flex items-center justify-center gap-1.5 text-sm text-gray-400 hover:text-gray-600 mt-5 w-full transition-colors">
+        <button onClick={() => routerNavigate("/carro")} className="flex items-center justify-center gap-1.5 text-sm text-gray-400 hover:text-gray-600 mt-5 w-full transition-colors">
           <ArrowLeft size={13} /> Volver al carro
         </button>
       </div>
@@ -1736,21 +1767,24 @@ function CartPage({
 
 // ─── CHECKOUT PAGE ───────────────────────────────────────────────────────────
 function CheckoutPage({
-  cart, cartTotal, navigate, setOrderNum, onOrderPlaced, prefill,
+  cart, cartTotal, navigate, setOrderNum, onOrderPlaced, prefill, clienteId,
 }: {
   cart: CartItem[]; cartTotal: number; navigate: NavigateFn;
   setOrderNum: (n: string) => void;
-  onOrderPlaced: (order: Order) => void;
-  prefill?: User;
+  onOrderPlaced: (order: Pedido) => void;
+  prefill?: Cliente | null;
+  clienteId: string | null;
 }) {
   const [form, setForm] = useState({
-    name: prefill?.name ?? "", email: prefill?.email ?? "", phone: prefill?.phone ?? "",
+    name: prefill?.nombre ?? "", email: prefill?.email ?? "", phone: prefill?.telefono ?? "",
     rut: "", timeSlot: "", payment: "webpay", docType: "boleta",
   });
-  const [invoiceData, setInvoiceData] = useState<InvoiceData>({
+  const [invoiceData, setInvoiceData] = useState({
     rut: "", razonSocial: "", giro: "", direccion: "", comuna: "",
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState("");
 
   const validateRut = (rut: string): boolean => {
     const clean = rut.replace(/[\.\-]/g, "").toUpperCase();
@@ -1790,25 +1824,45 @@ function CheckoutPage({
     return e;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const errs = validate();
     setErrors(errs);
     if (Object.keys(errs).length > 0) return;
-    const num = `LN-${Date.now().toString().slice(-6)}`;
-    setOrderNum(num);
-    onOrderPlaced({
-      id: Date.now().toString(),
-      num,
-      date: new Date().toLocaleString("es-CL"),
-      customer: { name: form.name, email: form.email, phone: form.phone, address: form.timeSlot },
-      items: cart,
-      total: cartTotal,
-      status: "pendiente",
-      docType: form.docType as "boleta" | "factura",
-      ...(form.docType === "factura" && { invoiceData }),
-    });
-    navigate("confirmation");
+
+    setSubmitting(true);
+    setSubmitError("");
+    try {
+      const pedido = await crearPedido({
+        cliente_id: clienteId,
+        ...(clienteId ? {} : { invitado_nombre: form.name, invitado_email: form.email, invitado_telefono: form.phone }),
+        total: cartTotal,
+        metodo_pago: form.payment,
+        tipo_documento: form.docType as TipoDocumento,
+        ...(form.docType === "factura" && {
+          factura_rut: invoiceData.rut,
+          factura_razon_social: invoiceData.razonSocial,
+          factura_giro: invoiceData.giro,
+          factura_direccion: invoiceData.direccion,
+          factura_comuna: invoiceData.comuna,
+        }),
+        items: cart.map((i) => ({
+          producto_id: i.id,
+          nombre_producto: i.name,
+          sku: i.sku,
+          cantidad: i.qty,
+          precio_unitario: i.price,
+          subtotal: i.price * i.qty,
+        })),
+      });
+      setOrderNum(pedido.buy_order);
+      onOrderPlaced(pedido);
+      navigate("confirmation");
+    } catch (err) {
+      setSubmitError(err instanceof Error ? err.message : "No se pudo procesar el pedido. Intenta de nuevo.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const set = (key: string) => (e: React.ChangeEvent<HTMLInputElement>) =>
@@ -2085,12 +2139,19 @@ function CheckoutPage({
               <span>Sin despacho a domicilio. Solo retiro en Av. Obispo Valdés Subercaseaux 533.</span>
             </div>
 
+            {submitError && (
+              <div className="px-4 pt-3">
+                <p className="text-xs text-red-500">{submitError}</p>
+              </div>
+            )}
+
             <div className="p-4">
               <button
                 type="submit"
-                className="w-full bg-[#2ECC71] hover:bg-[#27AE60] text-white py-4 font-black uppercase tracking-widest text-sm transition-colors"
+                disabled={submitting}
+                className="w-full bg-[#2ECC71] hover:bg-[#27AE60] disabled:opacity-60 text-white py-4 font-black uppercase tracking-widest text-sm transition-colors"
               >
-                Confirmar pedido →
+                {submitting ? "Procesando…" : "Confirmar pedido →"}
               </button>
             </div>
           </div>
@@ -2101,7 +2162,7 @@ function CheckoutPage({
 }
 
 // ─── CONFIRMATION PAGE ────────────────────────────────────────────────────────
-function ConfirmationPage({ orderNum, order, navigate }: { orderNum: string; order: Order | null; navigate: NavigateFn }) {
+function ConfirmationPage({ orderNum, order, navigate }: { orderNum: string; order: Pedido | null; navigate: NavigateFn }) {
   const pickupCode = orderNum.replace("LN-", "");
 
   const handleDownloadPdf = () => {
@@ -2142,28 +2203,28 @@ function ConfirmationPage({ orderNum, order, navigate }: { orderNum: string; ord
         {order && (
           <div className="px-5 py-3 border-b border-gray-200 flex items-center justify-between">
             <p className="text-xs font-black uppercase tracking-widest text-gray-400">Documento tributario</p>
-            <span className={`text-xs font-black uppercase tracking-widest px-2.5 py-1 rounded-sm ${order.docType === "factura" ? "bg-blue-100 text-blue-700" : "bg-gray-100 text-gray-600"}`}>
-              {order.docType === "factura" ? "Factura" : "Boleta"}
+            <span className={`text-xs font-black uppercase tracking-widest px-2.5 py-1 rounded-sm ${order.tipo_documento === "factura" ? "bg-blue-100 text-blue-700" : "bg-gray-100 text-gray-600"}`}>
+              {order.tipo_documento === "factura" ? "Factura" : "Boleta"}
             </span>
           </div>
         )}
 
         {/* Items del pedido */}
-        {order && order.items.length > 0 && (
+        {order && order.pedido_items.length > 0 && (
           <div className="border-b border-gray-200">
             <div className="px-5 pt-4 pb-1">
               <p className="text-xs font-black uppercase tracking-widest text-gray-400 mb-3">Productos pedidos</p>
             </div>
             <div className="px-5 pb-4 space-y-2">
-              {order.items.map((item) => (
+              {order.pedido_items.map((item) => (
                 <div key={item.id} className="flex items-center justify-between gap-3">
                   <div className="flex items-center gap-2.5 min-w-0">
                     <span className="w-5 h-5 rounded bg-[#2ECC71]/10 text-[#2ECC71] text-[10px] font-black flex items-center justify-center shrink-0">
-                      {item.qty}
+                      {item.cantidad}
                     </span>
-                    <span className="text-sm text-[#1C1C1C] truncate">{item.name}</span>
+                    <span className="text-sm text-[#1C1C1C] truncate">{item.nombre_producto}</span>
                   </div>
-                  <span className="text-sm font-bold text-[#1C1C1C] shrink-0">{fmt(item.price * item.qty)}</span>
+                  <span className="text-sm font-bold text-[#1C1C1C] shrink-0">{fmt(item.subtotal)}</span>
                 </div>
               ))}
             </div>
@@ -2624,67 +2685,63 @@ function ContactoPage({ onSend }: { onSend: (msg: ContactMessage) => void }) {
 }
 
 // ─── ADMIN PAGE ──────────────────────────────────────────────────────────────
-const STATUS_COLORS: Record<Order["status"], string> = {
-  pendiente:        "bg-red-100 text-red-700",
-  "en preparación": "bg-yellow-100 text-yellow-700",
-  listo:            "bg-[#dcfce7] text-green-800",
-  entregado:        "bg-gray-100 text-gray-500",
+const ESTADO_CARD: Record<EstadoPedido, { border: string; header: string }> = {
+  pendiente:          { border: "border-gray-300",   header: "border-gray-200 bg-gray-50" },
+  pagado:              { border: "border-yellow-400", header: "border-yellow-200 bg-yellow-50" },
+  listo_para_retiro:   { border: "border-[#2ECC71]",  header: "border-[#2ECC71]/30 bg-[#f0fdf4]" },
+  completado:          { border: "border-blue-300",   header: "border-blue-200 bg-blue-50" },
+  cancelado:           { border: "border-red-300",    header: "border-red-200 bg-red-50" },
 };
 
-const STATUS_CARD: Record<Order["status"], { border: string; header: string }> = {
-  pendiente:        { border: "border-red-400",      header: "border-red-200 bg-red-50" },
-  "en preparación": { border: "border-yellow-400",   header: "border-yellow-200 bg-yellow-50" },
-  listo:            { border: "border-[#2ECC71]",    header: "border-[#2ECC71]/30 bg-[#f0fdf4]" },
-  entregado:        { border: "border-gray-200",     header: "border-gray-100" },
-};
+const ESTADO_ORDEN: EstadoPedido[] = ["pendiente", "pagado", "listo_para_retiro", "completado", "cancelado"];
 
-function OrderCard({ order, updateStatus }: { order: Order; updateStatus: (id: string, s: Order["status"]) => void }) {
-  const cardStyle = STATUS_CARD[order.status];
+function OrderCard({ order, updateStatus }: { order: Pedido; updateStatus: (id: string, s: EstadoPedido) => void }) {
+  const cardStyle = ESTADO_CARD[order.estado];
+  const nombreCliente = order.clientes?.nombre || order.invitado_nombre || "Cliente";
+  const emailCliente = order.clientes?.email || order.invitado_email || "";
+  const telefonoCliente = order.clientes?.telefono || order.invitado_telefono || "";
   return (
     <div className={`bg-white rounded-sm border overflow-hidden ${cardStyle.border}`}>
       <div className={`flex flex-wrap items-center justify-between gap-3 px-5 py-3.5 border-b ${cardStyle.header}`}>
         <div className="flex items-center gap-2.5">
-          <span className="font-black text-sm text-[#1C1C1C]">{order.num}</span>
-          <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full ${STATUS_COLORS[order.status]}`}>
-            {order.status}
-          </span>
+          <span className="font-black text-sm text-[#1C1C1C]">{order.buy_order}</span>
+          <EstadoBadge estado={order.estado} />
         </div>
         <div className="flex items-center gap-1.5 text-xs text-gray-400">
-          <Clock size={11} />{order.date}
+          <Clock size={11} />{new Date(order.fecha).toLocaleString("es-CL")}
         </div>
       </div>
       <div className="grid md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-gray-100">
         <div className="px-5 py-3.5 space-y-3">
           <div>
             <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1.5">Cliente</p>
-            <p className="font-semibold text-sm text-[#1C1C1C]">{order.customer.name}</p>
-            <p className="text-xs text-gray-400 mt-0.5">{order.customer.email} · {order.customer.phone}</p>
-            <p className="text-xs text-gray-400 mt-0.5">Retiro: {order.customer.address}</p>
+            <p className="font-semibold text-sm text-[#1C1C1C]">{nombreCliente}</p>
+            <p className="text-xs text-gray-400 mt-0.5">{emailCliente} · {telefonoCliente}</p>
           </div>
 
           <div className="flex items-center justify-between">
             <div>
               <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1">Código de retiro</p>
               <p className="font-black text-xl text-[#2ECC71]" style={{ fontFamily: "var(--font-mono)" }}>
-                {order.num.replace("LN-", "")}
+                {order.buy_order.replace("LN-", "")}
               </p>
             </div>
             <div className="text-right">
               <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1">Documento</p>
-              <span className={`text-xs font-black uppercase px-2.5 py-1 rounded-sm ${order.docType === "factura" ? "bg-blue-100 text-blue-700" : "bg-gray-100 text-gray-600"}`}>
-                {order.docType === "factura" ? "Factura" : "Boleta"}
+              <span className={`text-xs font-black uppercase px-2.5 py-1 rounded-sm ${order.tipo_documento === "factura" ? "bg-blue-100 text-blue-700" : "bg-gray-100 text-gray-600"}`}>
+                {order.tipo_documento === "factura" ? "Factura" : "Boleta"}
               </span>
             </div>
           </div>
 
-          {order.docType === "factura" && order.invoiceData && (
+          {order.tipo_documento === "factura" && order.factura_rut && (
             <div className="border border-blue-200 bg-blue-50 rounded-sm p-3">
               <p className="text-[10px] font-black uppercase tracking-widest text-blue-500 mb-2">Datos de facturación</p>
               <div className="space-y-0.5 text-xs text-gray-700">
-                <p><span className="font-semibold">RUT:</span> {order.invoiceData.rut}</p>
-                <p><span className="font-semibold">Razón social:</span> {order.invoiceData.razonSocial}</p>
-                <p><span className="font-semibold">Giro:</span> {order.invoiceData.giro}</p>
-                <p><span className="font-semibold">Dirección:</span> {order.invoiceData.direccion}, {order.invoiceData.comuna}</p>
+                <p><span className="font-semibold">RUT:</span> {order.factura_rut}</p>
+                <p><span className="font-semibold">Razón social:</span> {order.factura_razon_social}</p>
+                <p><span className="font-semibold">Giro:</span> {order.factura_giro}</p>
+                <p><span className="font-semibold">Dirección:</span> {order.factura_direccion}, {order.factura_comuna}</p>
               </div>
             </div>
           )}
@@ -2692,10 +2749,10 @@ function OrderCard({ order, updateStatus }: { order: Order; updateStatus: (id: s
         <div className="px-5 py-3.5">
           <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1.5">Productos</p>
           <div className="space-y-0.5">
-            {order.items.map((item) => (
+            {order.pedido_items.map((item) => (
               <div key={item.id} className="flex justify-between text-sm">
-                <span className="text-gray-700 truncate max-w-[200px]">{item.name} <span className="text-gray-400">×{item.qty}</span></span>
-                <span className="font-semibold text-[#1C1C1C] shrink-0 ml-2">{fmt(item.price * item.qty)}</span>
+                <span className="text-gray-700 truncate max-w-[200px]">{item.nombre_producto} <span className="text-gray-400">×{item.cantidad}</span></span>
+                <span className="font-semibold text-[#1C1C1C] shrink-0 ml-2">{fmt(item.subtotal)}</span>
               </div>
             ))}
           </div>
@@ -2707,12 +2764,12 @@ function OrderCard({ order, updateStatus }: { order: Order; updateStatus: (id: s
       </div>
       <div className="px-5 py-2.5 bg-gray-50 border-t border-gray-100 flex flex-wrap items-center gap-1.5">
         <span className="text-xs text-gray-400 mr-1">Estado:</span>
-        {(["pendiente", "en preparación", "listo", "entregado"] as Order["status"][]).map((s) => (
+        {ESTADO_ORDEN.map((s) => (
           <button key={s} onClick={() => updateStatus(order.id, s)}
             className={`text-xs px-3 py-1 rounded-sm font-semibold transition-colors ${
-              order.status === s ? "bg-[#1C1C1C] text-white" : "bg-white border border-gray-200 text-gray-500 hover:border-gray-400"
+              order.estado === s ? "bg-[#1C1C1C] text-white" : "bg-white border border-gray-200 text-gray-500 hover:border-gray-400"
             }`}
-          >{s}</button>
+          >{s.replace(/_/g, " ")}</button>
         ))}
       </div>
     </div>
@@ -2720,16 +2777,30 @@ function OrderCard({ order, updateStatus }: { order: Order; updateStatus: (id: s
 }
 
 function AdminPage({
-  orders, setOrders, products, setProducts, navigate, contactMessages, setContactMessages,
+  products, setProducts, navigate, contactMessages, setContactMessages,
 }: {
-  orders: Order[];
-  setOrders: React.Dispatch<React.SetStateAction<Order[]>>;
   products: Product[];
   setProducts: React.Dispatch<React.SetStateAction<Product[]>>;
   navigate: NavigateFn;
   contactMessages: ContactMessage[];
   setContactMessages: React.Dispatch<React.SetStateAction<ContactMessage[]>>;
 }) {
+  const [orders, setOrders] = useState<Pedido[]>([]);
+  const [loadingOrders, setLoadingOrders] = useState(true);
+
+  const fetchOrders = useCallback(async () => {
+    setLoadingOrders(true);
+    try {
+      setOrders(await listarTodosPedidos());
+    } catch (err) {
+      console.error("No se pudieron cargar los pedidos:", err);
+    } finally {
+      setLoadingOrders(false);
+    }
+  }, []);
+
+  useEffect(() => { fetchOrders(); }, [fetchOrders]);
+
   const [tab, setTab] = useState<"pedidos" | "historial" | "productos" | "mensajes">("pedidos");
   const unreadCount = contactMessages.filter((m) => !m.read).length;
   const [editingId, setEditingId] = useState<number | null>(null);
@@ -2806,22 +2877,28 @@ function AdminPage({
     setProducts((prev) => prev.map((p) => (p.id === id ? { ...p, ...editBuf } : p)));
     setEditingId(null);
   }
-  function updateStatus(orderId: string, status: Order["status"]) {
-    setOrders((prev) => prev.map((o) => (o.id === orderId ? { ...o, status } : o)));
+  async function updateStatus(orderId: string, estado: EstadoPedido) {
+    setOrders((prev) => prev.map((o) => (o.id === orderId ? { ...o, estado } : o)));
+    try {
+      await actualizarEstadoPedido(orderId, estado);
+    } catch (err) {
+      console.error("No se pudo actualizar el estado:", err);
+      fetchOrders();
+    }
   }
 
-  // active = non-entregado; history = entregado
-  const activeOrders = orders.filter((o) => o.status !== "entregado");
-  const historyOrders = orders.filter((o) => o.status === "entregado");
-  const readyOrders = activeOrders.filter((o) => o.status === "listo");
-  const inProgressOrders = activeOrders.filter((o) => o.status !== "listo");
+  // active = no completado/cancelado; history = completado/cancelado
+  const activeOrders = orders.filter((o) => o.estado !== "completado" && o.estado !== "cancelado");
+  const historyOrders = orders.filter((o) => o.estado === "completado" || o.estado === "cancelado");
+  const readyOrders = activeOrders.filter((o) => o.estado === "listo_para_retiro");
+  const inProgressOrders = activeOrders.filter((o) => o.estado !== "listo_para_retiro");
 
-  function filterOrders(list: Order[]) {
+  function filterOrders(list: Pedido[]) {
     const q = search.toLowerCase();
     return !q ? list : list.filter((o) =>
-      o.num.toLowerCase().includes(q) ||
-      o.customer.name.toLowerCase().includes(q) ||
-      o.customer.email.toLowerCase().includes(q)
+      o.buy_order.toLowerCase().includes(q) ||
+      (o.clientes?.nombre || o.invitado_nombre || "").toLowerCase().includes(q) ||
+      (o.clientes?.email || o.invitado_email || "").toLowerCase().includes(q)
     );
   }
 
@@ -2884,12 +2961,12 @@ function AdminPage({
                           onClick={() => { setBellOpen(false); setTab("pedidos"); }}
                           className="w-full text-left px-4 py-3 hover:bg-gray-50 transition-colors"
                         >
-                          <div className="flex items-center justify-between mb-0.5">
-                            <span className="text-xs font-bold text-[#1C1C1C]">{o.num}</span>
-                            <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${STATUS_COLORS[o.status]}`}>{o.status}</span>
+                          <div className="flex items-center justify-between mb-0.5 gap-2">
+                            <span className="text-xs font-bold text-[#1C1C1C]">{o.buy_order}</span>
+                            <EstadoBadge estado={o.estado} />
                           </div>
-                          <p className="text-xs text-gray-400">{o.customer.name} · {fmt(o.total)}</p>
-                          <p className="text-[10px] text-gray-300 mt-0.5">{o.date}</p>
+                          <p className="text-xs text-gray-400">{o.clientes?.nombre || o.invitado_nombre || "Cliente"} · {fmt(o.total)}</p>
+                          <p className="text-[10px] text-gray-300 mt-0.5">{new Date(o.fecha).toLocaleString("es-CL")}</p>
                         </button>
                       ))}
                     </div>
@@ -2994,17 +3071,28 @@ function AdminPage({
       <div className="max-w-6xl mx-auto px-4 py-6">
 
         {/* search */}
-        <div className="relative mb-6 max-w-md">
-          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
-          <input
-            value={search}
-            onChange={(e) => { setSearch(e.target.value); setEditingId(null); }}
-            placeholder={tab === "productos" ? "Buscar por nombre, SKU o marca…" : "Buscar por N° pedido o cliente…"}
-            className="w-full pl-9 pr-8 py-2.5 text-sm border border-gray-200 rounded-sm bg-white outline-none focus:border-[#2ECC71] transition-colors"
-          />
-          {search && (
-            <button onClick={() => setSearch("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
-              <X size={13} />
+        <div className="flex items-center gap-3 mb-6">
+          <div className="relative max-w-md flex-1">
+            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+            <input
+              value={search}
+              onChange={(e) => { setSearch(e.target.value); setEditingId(null); }}
+              placeholder={tab === "productos" ? "Buscar por nombre, SKU o marca…" : "Buscar por N° pedido o cliente…"}
+              className="w-full pl-9 pr-8 py-2.5 text-sm border border-gray-200 rounded-sm bg-white outline-none focus:border-[#2ECC71] transition-colors"
+            />
+            {search && (
+              <button onClick={() => setSearch("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                <X size={13} />
+              </button>
+            )}
+          </div>
+          {(tab === "pedidos" || tab === "historial") && (
+            <button
+              onClick={fetchOrders}
+              disabled={loadingOrders}
+              className="text-xs font-bold text-gray-500 hover:text-[#2ECC71] border border-gray-200 hover:border-[#2ECC71] px-3 py-2.5 rounded-sm transition-colors disabled:opacity-50"
+            >
+              {loadingOrders ? "Actualizando…" : "Actualizar"}
             </button>
           )}
         </div>
@@ -3337,27 +3425,61 @@ function AdminPage({
 }
 
 // ─── APP ─────────────────────────────────────────────────────────────────────
+function LoadingScreen() {
+  return <div className="flex items-center justify-center py-24 text-gray-400 text-sm">Cargando…</div>;
+}
+
+function SinPermisos() {
+  return (
+    <div className="max-w-md mx-auto px-4 py-24 text-center">
+      <h2 className="text-xl font-black uppercase tracking-tight mb-2" style={{ fontFamily: "var(--font-display)" }}>
+        Sin permisos
+      </h2>
+      <p className="text-gray-500 text-sm mb-6">Tu cuenta no tiene acceso al panel de administración.</p>
+      <Link to="/" className="text-[#2ECC71] font-bold text-sm hover:underline">Volver al inicio</Link>
+    </div>
+  );
+}
+
+function ProductoNoEncontrado() {
+  return (
+    <div className="max-w-md mx-auto px-4 py-24 text-center">
+      <h2 className="text-xl font-black uppercase tracking-tight mb-2" style={{ fontFamily: "var(--font-display)" }}>
+        Producto no encontrado
+      </h2>
+      <Link to="/catalogo" className="text-[#2ECC71] font-bold text-sm hover:underline">Volver al catálogo</Link>
+    </div>
+  );
+}
+
 export default function App() {
-  const [page, setPage] = useState<Page>("home");
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const routerNavigate = useNavigate();
+  const location = useLocation();
+  const productMatch = useMatch("/producto/:id");
+
+  const { session, cliente, loading: authLoading } = useAuth();
   const [cart, setCart] = useState<CartItem[]>([]);
   const [orderNum, setOrderNum] = useState("");
-  const [lastOrder, setLastOrder] = useState<Order | null>(null);
-  const [orders, setOrders] = useState<Order[]>([]);
+  const [lastOrder, setLastOrder] = useState<Pedido | null>(null);
   const [products, setProducts] = useState<Product[]>(PRODUCTS);
   const [contactMessages, setContactMessages] = useState<ContactMessage[]>([]);
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [isGuest, setIsGuest] = useState(false);
 
   const navigate: NavigateFn = (to, product) => {
-    // gate checkout behind auth
-    if (to === "checkout" && !currentUser && !isGuest) {
-      setPage("auth");
+    if (to === "checkout" && !session && !isGuest) {
+      routerNavigate("/auth", { state: { from: "/checkout" } });
+      return;
+    }
+    if (to === "mi-cuenta" && !session) {
+      routerNavigate("/auth", { state: { from: "/mi-cuenta" } });
+      return;
+    }
+    if (to === "product" && product) {
+      routerNavigate(`/producto/${product.id}`);
       setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 0);
       return;
     }
-    setPage(to);
-    if (product) setSelectedProduct(product);
+    routerNavigate(PAGE_PATHS[to]);
     setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 0);
   };
 
@@ -3379,66 +3501,100 @@ export default function App() {
   const cartCount = cart.reduce((a, b) => a + b.qty, 0);
   const cartTotal = cart.reduce((a, b) => a + b.price * b.qty, 0);
 
+  const displayedProduct = productMatch
+    ? products.find((p) => String(p.id) === productMatch.params.id) ?? null
+    : null;
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    setIsGuest(false);
+  };
+
   return (
     <div
       className="min-h-screen bg-background flex flex-col"
       style={{ fontFamily: "var(--font-body)" }}
     >
+      <Toaster richColors position="top-center" />
       <Header
         navigate={navigate} cartCount={cartCount}
-        currentUser={currentUser}
-        onLogout={() => { setCurrentUser(null); setIsGuest(false); }}
+        cliente={cliente}
+        onLogout={handleLogout}
       />
 
       <main className="flex-1">
-        {page === "home" && (
-          <HomePage navigate={navigate} addToCart={addToCart} products={products} />
-        )}
-        {page === "catalog" && (
-          <CatalogPage navigate={navigate} addToCart={addToCart} products={products} />
-        )}
-        {page === "product" && selectedProduct && (
-          <ProductPage product={selectedProduct} navigate={navigate} addToCart={addToCart} products={products} />
-        )}
-        {page === "cart" && (
-          <CartPage cart={cart} updateQty={updateQty} cartTotal={cartTotal} navigate={navigate} />
-        )}
-        {page === "checkout" && (
-          <CheckoutPage
-            cart={cart} cartTotal={cartTotal} navigate={navigate}
-            setOrderNum={setOrderNum}
-            onOrderPlaced={(o) => { setOrders((prev) => [o, ...prev]); setLastOrder(o); setCart([]); }}
-            prefill={currentUser ?? undefined}
+        <Routes>
+          <Route path="/" element={<HomePage navigate={navigate} addToCart={addToCart} products={products} />} />
+          <Route path="/catalogo" element={<CatalogPage navigate={navigate} addToCart={addToCart} products={products} />} />
+          <Route
+            path="/producto/:id"
+            element={
+              displayedProduct
+                ? <ProductPage product={displayedProduct} navigate={navigate} addToCart={addToCart} products={products} />
+                : <ProductoNoEncontrado />
+            }
           />
-        )}
-        {page === "confirmation" && (
-          <ConfirmationPage orderNum={orderNum} order={lastOrder} navigate={navigate} />
-        )}
-        {page === "nosotros" && (
-          <NosotrosPage navigate={navigate} />
-        )}
-        {page === "contacto" && (
-          <ContactoPage onSend={(msg) => setContactMessages((prev) => [msg, ...prev])} />
-        )}
-        {page === "auth" && (
-          <AuthPage
-            navigate={navigate}
-            onAuth={(user) => { setCurrentUser(user); setIsGuest(false); setPage("checkout"); setTimeout(() => window.scrollTo({ top: 0 }), 0); }}
-            onGuest={() => { setIsGuest(true); setCurrentUser(null); setPage("checkout"); setTimeout(() => window.scrollTo({ top: 0 }), 0); }}
+          <Route path="/carro" element={<CartPage cart={cart} updateQty={updateQty} cartTotal={cartTotal} navigate={navigate} />} />
+          <Route
+            path="/checkout"
+            element={
+              session || isGuest
+                ? <CheckoutPage
+                    cart={cart} cartTotal={cartTotal} navigate={navigate}
+                    setOrderNum={setOrderNum}
+                    onOrderPlaced={(o) => { setLastOrder(o); setCart([]); }}
+                    prefill={cliente}
+                    clienteId={session?.user.id ?? null}
+                  />
+                : <Navigate to="/auth" state={{ from: "/checkout" }} replace />
+            }
           />
-        )}
-        {page === "admin" && (
-          <AdminPage
-            orders={orders} setOrders={setOrders}
-            products={products} setProducts={setProducts}
-            navigate={navigate}
-            contactMessages={contactMessages}
-            setContactMessages={setContactMessages}
+          <Route path="/confirmacion" element={<ConfirmationPage orderNum={orderNum} order={lastOrder} navigate={navigate} />} />
+          <Route path="/nosotros" element={<NosotrosPage navigate={navigate} />} />
+          <Route path="/contacto" element={<ContactoPage onSend={(msg) => setContactMessages((prev) => [msg, ...prev])} />} />
+          <Route path="/auth" element={<AuthPage onGuest={() => setIsGuest(true)} />} />
+          <Route
+            path="/mi-cuenta"
+            element={
+              authLoading
+                ? <LoadingScreen />
+                : session
+                  ? <MiCuentaPage products={products} addToCart={addToCart} />
+                  : <Navigate to="/auth" state={{ from: "/mi-cuenta" }} replace />
+            }
           />
-        )}
+          <Route
+            path="/mi-cuenta/pedidos/:id"
+            element={
+              authLoading
+                ? <LoadingScreen />
+                : session
+                  ? <PedidoDetallePage products={products} addToCart={addToCart} />
+                  : <Navigate to="/auth" state={{ from: "/mi-cuenta" }} replace />
+            }
+          />
+          <Route
+            path="/admin"
+            element={
+              authLoading
+                ? <LoadingScreen />
+                : !session
+                  ? <Navigate to="/auth" state={{ from: "/admin" }} replace />
+                  : cliente?.is_admin
+                    ? <AdminPage
+                        products={products} setProducts={setProducts}
+                        navigate={navigate}
+                        contactMessages={contactMessages}
+                        setContactMessages={setContactMessages}
+                      />
+                    : <SinPermisos />
+            }
+          />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
       </main>
 
-      {page !== "admin" && <Footer navigate={navigate} />}
+      {location.pathname !== "/admin" && <Footer navigate={navigate} />}
     </div>
   );
 }
