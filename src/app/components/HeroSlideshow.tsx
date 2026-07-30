@@ -27,10 +27,12 @@ function useReducedMotion() {
 }
 
 interface HeroSlideshowProps {
-  onCatalogClick: () => void;
+  onSearch: (e: React.FormEvent) => void;
+  searchVal: string;
+  setSearchVal: (v: string) => void;
 }
 
-export function HeroSlideshow({ onCatalogClick }: HeroSlideshowProps) {
+export function HeroSlideshow({ onSearch, searchVal, setSearchVal }: HeroSlideshowProps) {
   const [current, setCurrent] = useState(0);
   const reduced = useReducedMotion();
   const timerRef = useRef<ReturnType<typeof setTimeout>>();
@@ -54,7 +56,7 @@ export function HeroSlideshow({ onCatalogClick }: HeroSlideshowProps) {
           src={HERO_IMAGES[0]}
           alt=""
           aria-hidden
-          className="absolute inset-0 w-full h-full object-cover opacity-40"
+          className="absolute inset-0 w-full h-full object-cover opacity-65"
         />
       ) : (
         <AnimatePresence>
@@ -70,7 +72,7 @@ export function HeroSlideshow({ onCatalogClick }: HeroSlideshowProps) {
               src={HERO_IMAGES[current]}
               alt=""
               aria-hidden
-              className="absolute inset-0 w-full h-full object-cover opacity-40"
+              className="absolute inset-0 w-full h-full object-cover opacity-65"
               initial={{ scale: 1 }}
               animate={{ scale: 1.07 }}
               transition={{ duration: SLIDE_DURATION / 1000 + 1.2, ease: "linear" }}
@@ -80,7 +82,7 @@ export function HeroSlideshow({ onCatalogClick }: HeroSlideshowProps) {
       )}
 
       {/* Degradado oscuro */}
-      <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/30 to-[#1C1C1C]" />
+      <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/15 to-[#1C1C1C]" />
 
       {/* ── Contenido ── */}
       <div className="relative z-10 flex flex-col items-center text-center px-4 py-20 max-w-3xl mx-auto">
@@ -137,26 +139,37 @@ export function HeroSlideshow({ onCatalogClick }: HeroSlideshowProps) {
           </motion.p>
         )}
 
-        {/* Botón */}
+        {/* Barra de búsqueda */}
         {reduced ? (
-          <button
-            onClick={onCatalogClick}
-            className="bg-[#2ECC71] hover:bg-[#27AE60] text-white font-black uppercase tracking-widest text-sm px-8 py-4 transition-colors"
-          >
-            Ver catálogo
-          </button>
+          <form onSubmit={onSearch} className="flex w-full max-w-xl shadow-2xl rounded-sm overflow-hidden">
+            <input
+              value={searchVal}
+              onChange={(e) => setSearchVal(e.target.value)}
+              placeholder="Buscar producto, marca o código SKU..."
+              className="flex-1 bg-[#e2e2e2] text-[#1A1A1A] px-4 py-3.5 text-sm font-medium outline-none placeholder-gray-400"
+            />
+            <button type="submit" className="bg-[#2ECC71] hover:bg-[#27AE60] px-5 py-3.5 text-white transition-colors shrink-0">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            </button>
+          </form>
         ) : (
-          <motion.button
-            onClick={onCatalogClick}
-            className="bg-[#2ECC71] hover:bg-[#27AE60] text-white font-black uppercase tracking-widest text-sm px-8 py-4 transition-colors"
+          <motion.form
+            onSubmit={onSearch}
+            className="flex w-full max-w-xl shadow-2xl rounded-sm overflow-hidden"
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.55, delay: 0.55 }}
-            whileHover={{ scale: 1.03 }}
-            whileTap={{ scale: 0.97 }}
           >
-            Ver catálogo
-          </motion.button>
+            <input
+              value={searchVal}
+              onChange={(e) => setSearchVal(e.target.value)}
+              placeholder="Buscar producto, marca o código SKU..."
+              className="flex-1 bg-[#e2e2e2] text-[#1A1A1A] px-4 py-3.5 text-sm font-medium outline-none placeholder-gray-400"
+            />
+            <button type="submit" className="bg-[#2ECC71] hover:bg-[#27AE60] px-5 py-3.5 text-white transition-colors shrink-0">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            </button>
+          </motion.form>
         )}
       </div>
 

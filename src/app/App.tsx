@@ -760,7 +760,7 @@ function HomePage({ navigate, addToCart, products }: { navigate: NavigateFn; add
   return (
     <div>
       {/* Hero */}
-      <HeroSlideshow onCatalogClick={() => navigate("catalog")} />
+      <HeroSlideshow onSearch={handleSearch} searchVal={searchVal} setSearchVal={setSearchVal} />
 
       {/* Category Hover Effect */}
       <section className="max-w-7xl mx-auto px-4 py-10">
