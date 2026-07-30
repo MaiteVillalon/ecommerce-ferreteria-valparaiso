@@ -2532,16 +2532,24 @@ function NosotrosPage({ navigate }: { navigate: NavigateFn }) {
 
 // ─── ADMIN PAGE ──────────────────────────────────────────────────────────────
 const STATUS_COLORS: Record<Order["status"], string> = {
-  pendiente:        "bg-yellow-100 text-yellow-800",
-  "en preparación": "bg-blue-100 text-blue-800",
+  pendiente:        "bg-red-100 text-red-700",
+  "en preparación": "bg-yellow-100 text-yellow-700",
   listo:            "bg-[#dcfce7] text-green-800",
   entregado:        "bg-gray-100 text-gray-500",
 };
 
+const STATUS_CARD: Record<Order["status"], { border: string; header: string }> = {
+  pendiente:        { border: "border-red-400",      header: "border-red-200 bg-red-50" },
+  "en preparación": { border: "border-yellow-400",   header: "border-yellow-200 bg-yellow-50" },
+  listo:            { border: "border-[#2ECC71]",    header: "border-[#2ECC71]/30 bg-[#f0fdf4]" },
+  entregado:        { border: "border-gray-200",     header: "border-gray-100" },
+};
+
 function OrderCard({ order, updateStatus }: { order: Order; updateStatus: (id: string, s: Order["status"]) => void }) {
+  const cardStyle = STATUS_CARD[order.status];
   return (
-    <div className={`bg-white rounded-sm border overflow-hidden ${order.status === "listo" ? "border-[#2ECC71]" : "border-gray-200"}`}>
-      <div className={`flex flex-wrap items-center justify-between gap-3 px-5 py-3.5 border-b ${order.status === "listo" ? "border-[#2ECC71]/30 bg-[#f0fdf4]" : "border-gray-100"}`}>
+    <div className={`bg-white rounded-sm border overflow-hidden ${cardStyle.border}`}>
+      <div className={`flex flex-wrap items-center justify-between gap-3 px-5 py-3.5 border-b ${cardStyle.header}`}>
         <div className="flex items-center gap-2.5">
           <span className="font-black text-sm text-[#1C1C1C]">{order.num}</span>
           <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full ${STATUS_COLORS[order.status]}`}>
