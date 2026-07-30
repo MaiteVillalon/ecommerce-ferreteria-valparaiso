@@ -1810,7 +1810,6 @@ function CheckoutPage({
     if (!form.email.includes("@")) e.email = "Email inválido";
     if (form.phone.replace(/\D/g, "").length < 9) e.phone = "Teléfono inválido";
     if (!form.rut.trim()) e.rut = "Ingresa tu RUT";
-    if (!form.timeSlot) e.timeSlot = "Selecciona un horario de retiro";
     if (form.docType === "factura") {
       if (!invoiceData.rut.trim()) e.invoiceRut = "Ingresa el RUT de la empresa";
       else if (!validateRut(invoiceData.rut)) e.invoiceRut = "RUT inválido, verifica el dígito verificador";
