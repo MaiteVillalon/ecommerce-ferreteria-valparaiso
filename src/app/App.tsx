@@ -2490,95 +2490,133 @@ function ContactoPage({ onSend }: { onSend: (msg: ContactMessage) => void }) {
     `w-full rounded-[10px] px-3.5 py-3 text-sm outline-none transition-colors border ${err ? "border-red-400" : "border-[#262626]"} bg-[#1B1B1B] text-[#F2F2F0] placeholder-[#6E6E68] focus:border-[#2ECC71]`;
 
   return (
-    <div className="bg-[#0A0A0A] min-h-screen py-20 px-4">
-      <div className="max-w-3xl mx-auto">
+    <div className="bg-[#0A0A0A] min-h-screen py-16 px-4">
+      <div className="max-w-6xl mx-auto">
 
-        {/* Heading */}
-        <h1 className="text-center font-black uppercase tracking-tight text-4xl md:text-5xl text-white mb-4" style={{ fontFamily: "var(--font-display)" }}>
-          Contáctanos
-        </h1>
-        <p className="text-center text-[#9B9B95] text-sm max-w-md mx-auto mb-14 leading-relaxed">
-          ¿Tienes dudas sobre algún producto, tu pedido o el retiro en tienda? Escríbenos y te respondemos a la brevedad.
-        </p>
+        {/* ── Dos columnas en desktop, apiladas en mobile ── */}
+        <div className="flex flex-col md:flex-row gap-10 md:gap-14 items-start">
 
-        {/* World map with sparkle dots */}
-        <div className="relative mb-6 z-10">
-          <WorldMapSparkle />
-        </div>
+          {/* ── Columna izquierda (~40%) ── */}
+          <div className="w-full md:w-2/5 shrink-0 flex flex-col gap-6 md:pt-4">
 
-        {/* Form card */}
-        <div
-          className="relative rounded-3xl border border-[#262626] bg-[#141414] px-6 md:px-10 py-10 overflow-hidden"
-          style={{
-            backgroundImage:
-              "repeating-linear-gradient(0deg,rgba(255,255,255,0.035) 0 1px,transparent 1px 32px),repeating-linear-gradient(90deg,rgba(255,255,255,0.035) 0 1px,transparent 1px 32px)",
-          }}
-        >
-          {/* mask overlay so grid fades at edges */}
-          <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse 70% 70% at 50% 30%, transparent 40%, #141414 90%)" }} />
-
-          {sent ? (
-            <div className="relative z-10 text-center py-10">
-              <div className="w-14 h-14 bg-[#2ECC71] rounded-full flex items-center justify-center mx-auto mb-4">
-                <Check size={28} className="text-[#0A0A0A]" />
-              </div>
-              <p className="font-black text-white uppercase tracking-tight text-xl mb-2" style={{ fontFamily: "var(--font-display)" }}>
-                ¡Mensaje enviado!
-              </p>
-              <p className="text-[#9B9B95] text-sm">Te responderemos a la brevedad al correo indicado.</p>
-              <button
-                onClick={() => { setSent(false); setForm({ name: "", email: "", phone: "", subject: "", message: "" }); }}
-                className="mt-6 text-xs font-bold text-[#2ECC71] hover:underline uppercase tracking-widest"
-              >
-                Enviar otro mensaje
-              </button>
+            {/* Ícono */}
+            <div className="w-10 h-10 rounded-xl bg-[#2ECC71]/10 border border-[#2ECC71]/25 flex items-center justify-center">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2ECC71" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+              </svg>
             </div>
-          ) : (
-            <form onSubmit={handleSubmit} className="relative z-10 grid grid-cols-1 sm:grid-cols-2 gap-5">
-              {[
-                { label: "Nombre completo", key: "name", placeholder: "Juan Pérez", type: "text" },
-                { label: "Correo electrónico", key: "email", placeholder: "juan@ejemplo.com", type: "email" },
-                { label: "Teléfono", key: "phone", placeholder: "+56 9 1234 5678", type: "tel" },
-                { label: "Motivo de tu consulta", key: "subject", placeholder: "Estado de pedido, disponibilidad…", type: "text" },
-              ].map(({ label, key, placeholder, type }) => (
-                <div key={key} className="flex flex-col gap-2">
-                  <label className="text-[13px] font-medium text-[#F2F2F0]">{label}</label>
-                  <input
-                    type={type}
-                    placeholder={placeholder}
-                    value={(form as any)[key]}
-                    onChange={(e) => setForm((f) => ({ ...f, [key]: e.target.value }))}
-                    className={inputCls(errors[key])}
-                  />
-                  {errors[key] && <p className="text-red-400 text-xs">{errors[key]}</p>}
-                </div>
-              ))}
 
-              <div className="sm:col-span-2 flex flex-col gap-2">
-                <label className="text-[13px] font-medium text-[#F2F2F0]">Mensaje</label>
-                <textarea
-                  placeholder="Cuéntanos en qué te podemos ayudar..."
-                  value={form.message}
-                  onChange={(e) => setForm((f) => ({ ...f, message: e.target.value }))}
-                  rows={4}
-                  className={`${inputCls(errors.message)} resize-y`}
-                />
-                {errors.message && <p className="text-red-400 text-xs">{errors.message}</p>}
-              </div>
-
-              {serverError && (
-                <p className="sm:col-span-2 text-red-400 text-sm text-center">{serverError}</p>
-              )}
-
-              <button
-                type="submit"
-                disabled={sending}
-                className="sm:col-span-2 mt-1 bg-[#2ECC71] hover:bg-[#27AE60] disabled:opacity-60 text-[#08240F] font-bold text-sm rounded-[10px] py-3.5 transition-colors active:scale-[0.98]"
+            {/* Título + subtítulo */}
+            <div>
+              <h1
+                className="font-black uppercase tracking-tight text-4xl text-white leading-none mb-3"
+                style={{ fontFamily: "var(--font-display)" }}
               >
-                {sending ? "Enviando..." : "Enviar mensaje"}
-              </button>
-            </form>
-          )}
+                Contáctanos
+              </h1>
+              <p className="text-[#9B9B95] text-sm leading-relaxed max-w-xs">
+                ¿Tienes dudas sobre algún producto, tu pedido o el retiro en tienda? Escríbenos y te respondemos a la brevedad.
+              </p>
+            </div>
+
+            {/* Datos de contacto */}
+            <div className="flex flex-col gap-2.5">
+              <a href="mailto:ferreteria.lanonna@gmail.com" className="flex items-center gap-2.5 text-sm text-[#9B9B95] hover:text-[#2ECC71] transition-colors">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
+                </svg>
+                ferreteria.lanonna@gmail.com
+              </a>
+              <a href="tel:+56322214589" className="flex items-center gap-2.5 text-sm text-[#9B9B95] hover:text-[#2ECC71] transition-colors">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.41 2 2 0 0 1 3.6 1.24h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L7.91 8.8a16 16 0 0 0 6 6l.93-.93a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+                </svg>
+                +56 32 221 4589
+              </a>
+            </div>
+
+            {/* Mapa reducido */}
+            <div className="w-full max-w-sm">
+              <WorldMapSparkle />
+            </div>
+          </div>
+
+          {/* ── Columna derecha (~60%): tarjeta formulario ── */}
+          <div className="w-full md:w-3/5">
+            <div
+              className="relative rounded-3xl border border-[#262626] bg-[#141414] px-6 md:px-10 py-10 overflow-hidden"
+              style={{
+                backgroundImage:
+                  "repeating-linear-gradient(0deg,rgba(255,255,255,0.035) 0 1px,transparent 1px 32px),repeating-linear-gradient(90deg,rgba(255,255,255,0.035) 0 1px,transparent 1px 32px)",
+              }}
+            >
+              <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse 70% 70% at 50% 30%, transparent 40%, #141414 90%)" }} />
+
+              {sent ? (
+                <div className="relative z-10 text-center py-10">
+                  <div className="w-14 h-14 bg-[#2ECC71] rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Check size={28} className="text-[#0A0A0A]" />
+                  </div>
+                  <p className="font-black text-white uppercase tracking-tight text-xl mb-2" style={{ fontFamily: "var(--font-display)" }}>
+                    ¡Mensaje enviado!
+                  </p>
+                  <p className="text-[#9B9B95] text-sm">Te responderemos a la brevedad al correo indicado.</p>
+                  <button
+                    onClick={() => { setSent(false); setForm({ name: "", email: "", phone: "", subject: "", message: "" }); }}
+                    className="mt-6 text-xs font-bold text-[#2ECC71] hover:underline uppercase tracking-widest"
+                  >
+                    Enviar otro mensaje
+                  </button>
+                </div>
+              ) : (
+                <form onSubmit={handleSubmit} className="relative z-10 grid grid-cols-1 sm:grid-cols-2 gap-5">
+                  {[
+                    { label: "Nombre completo", key: "name", placeholder: "Juan Pérez", type: "text" },
+                    { label: "Correo electrónico", key: "email", placeholder: "juan@ejemplo.com", type: "email" },
+                    { label: "Teléfono", key: "phone", placeholder: "+56 9 1234 5678", type: "tel" },
+                    { label: "Motivo de tu consulta", key: "subject", placeholder: "Estado de pedido, disponibilidad…", type: "text" },
+                  ].map(({ label, key, placeholder, type }) => (
+                    <div key={key} className="flex flex-col gap-2">
+                      <label className="text-[13px] font-medium text-[#F2F2F0]">{label}</label>
+                      <input
+                        type={type}
+                        placeholder={placeholder}
+                        value={(form as any)[key]}
+                        onChange={(e) => setForm((f) => ({ ...f, [key]: e.target.value }))}
+                        className={inputCls(errors[key])}
+                      />
+                      {errors[key] && <p className="text-red-400 text-xs">{errors[key]}</p>}
+                    </div>
+                  ))}
+
+                  <div className="sm:col-span-2 flex flex-col gap-2">
+                    <label className="text-[13px] font-medium text-[#F2F2F0]">Mensaje</label>
+                    <textarea
+                      placeholder="Cuéntanos en qué te podemos ayudar..."
+                      value={form.message}
+                      onChange={(e) => setForm((f) => ({ ...f, message: e.target.value }))}
+                      rows={4}
+                      className={`${inputCls(errors.message)} resize-y`}
+                    />
+                    {errors.message && <p className="text-red-400 text-xs">{errors.message}</p>}
+                  </div>
+
+                  {serverError && (
+                    <p className="sm:col-span-2 text-red-400 text-sm text-center">{serverError}</p>
+                  )}
+
+                  <button
+                    type="submit"
+                    disabled={sending}
+                    className="sm:col-span-2 mt-1 bg-[#2ECC71] hover:bg-[#27AE60] disabled:opacity-60 text-[#08240F] font-bold text-sm rounded-[10px] py-3.5 transition-colors active:scale-[0.98]"
+                  >
+                    {sending ? "Enviando..." : "Enviar mensaje"}
+                  </button>
+                </form>
+              )}
+            </div>
+          </div>
+
         </div>
       </div>
     </div>
