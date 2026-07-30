@@ -46,7 +46,7 @@ export function HeroSlideshow({ onCatalogClick }: HeroSlideshowProps) {
   return (
     <section
       className="relative overflow-hidden bg-[#1C1C1C] flex flex-col items-center justify-center"
-      style={{ minHeight: "clamp(420px, 100svh, 100svh)" }}
+      style={{ minHeight: "clamp(320px, 60vh, 60vh)" }}
     >
       {/* ── Slideshow de fondo ── */}
       {reduced ? (
