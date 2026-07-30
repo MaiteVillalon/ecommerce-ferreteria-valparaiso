@@ -753,7 +753,7 @@ function HomePage({ navigate, addToCart, products }: { navigate: NavigateFn; add
         <div className="absolute inset-0 bg-gradient-to-t from-[#1C1C1C] via-transparent to-transparent" />
 
         <div className="relative flex flex-col items-center justify-center px-4 text-center pb-16 pt-12" style={{ minHeight: 414 }}>
-          <div className="flex items-center gap-2 bg-[#2ECC71] text-white text-xs font-black px-3 py-1.5 mb-5 uppercase tracking-widest rounded-md">Compra online · Retira en tienda<Store size={11} /></div>
+          <div className="flex items-center gap-2 bg-[#2ECC71] text-white text-xs font-black px-3 py-1.5 mb-5 uppercase tracking-widest rounded-md">Compra online y retira en tienda<Store size={11} /></div>
 
           <h1
             className="text-4xl md:text-6xl font-black text-white uppercase tracking-tight leading-none mb-3 text-center w-full"
