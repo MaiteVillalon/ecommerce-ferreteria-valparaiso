@@ -2694,11 +2694,11 @@ function ContactoPage({ onSend }: { onSend: (msg: ContactMessage) => void }) {
 
 // ─── ADMIN PAGE ──────────────────────────────────────────────────────────────
 const ESTADO_CARD: Record<EstadoPedido, { border: string; header: string }> = {
-  pendiente:          { border: "border-gray-300",   header: "border-gray-200 bg-gray-50" },
+  pendiente:          { border: "border-red-400",    header: "border-red-200 bg-red-50" },
   pagado:              { border: "border-yellow-400", header: "border-yellow-200 bg-yellow-50" },
   listo_para_retiro:   { border: "border-[#2ECC71]",  header: "border-[#2ECC71]/30 bg-[#f0fdf4]" },
   completado:          { border: "border-blue-300",   header: "border-blue-200 bg-blue-50" },
-  cancelado:           { border: "border-red-300",    header: "border-red-200 bg-red-50" },
+  cancelado:           { border: "border-gray-200",   header: "border-gray-100" },
 };
 
 const ESTADO_ORDEN: EstadoPedido[] = ["pendiente", "pagado", "listo_para_retiro", "completado", "cancelado"];
