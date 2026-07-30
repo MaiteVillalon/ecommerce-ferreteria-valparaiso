@@ -2890,6 +2890,7 @@ function AdminPage({
   }
   const [seenCount, setSeenCount] = useState(orders.length);
   const [bellOpen, setBellOpen] = useState(false);
+  const [mailOpen, setMailOpen] = useState(false);
 
   const newCount = orders.length - seenCount;
 
@@ -2997,6 +2998,65 @@ function AdminPage({
               )}
             </AnimatePresence>
           </div>
+
+          {/* mail */}
+          <div className="relative">
+            <button
+              onClick={() => { setMailOpen((v) => !v); setBellOpen(false); }}
+              className="relative p-1.5 text-gray-400 hover:text-white transition-colors"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect width="20" height="16" x="2" y="4" rx="2"/>
+                <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
+              </svg>
+              {unreadCount > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 bg-red-500 text-white text-[9px] font-black rounded-full flex items-center justify-center px-0.5 animate-pulse">
+                  {unreadCount}
+                </span>
+              )}
+            </button>
+            <AnimatePresence>
+              {mailOpen && (
+                <motion.div
+                  initial={{ opacity: 0, y: -6, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -4, scale: 0.95 }}
+                  transition={{ duration: 0.15 }}
+                  className="absolute right-0 top-full mt-2 w-72 bg-white rounded-sm shadow-xl border border-gray-100 z-50 overflow-hidden"
+                >
+                  <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
+                    <span className="text-xs font-black uppercase tracking-widest text-gray-500">Mensajes</span>
+                    <button onClick={() => setMailOpen(false)}><X size={13} className="text-gray-400" /></button>
+                  </div>
+                  {contactMessages.length === 0 ? (
+                    <p className="text-xs text-gray-400 text-center py-6">Sin mensajes</p>
+                  ) : (
+                    <div className="max-h-64 overflow-y-auto divide-y divide-gray-50">
+                      {contactMessages.slice(0, 8).map((m) => (
+                        <button
+                          key={m.id}
+                          onClick={() => {
+                            setMailOpen(false);
+                            setTab("mensajes");
+                            setContactMessages((prev) => prev.map((x) => ({ ...x, read: true })));
+                          }}
+                          className="w-full text-left px-4 py-3 hover:bg-gray-50 transition-colors"
+                        >
+                          <div className="flex items-center justify-between mb-0.5">
+                            <span className="text-xs font-bold text-[#1C1C1C]">{m.name}</span>
+                            {!m.read && <span className="w-2 h-2 bg-red-500 rounded-full shrink-0" />}
+                          </div>
+                          <p className="text-xs text-gray-500 truncate">{m.subject || m.message}</p>
+                          <p className="text-[10px] text-gray-300 mt-0.5">{m.date}</p>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+
           <button onClick={() => navigate("home")} className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-white transition-colors">
             <ArrowLeft size={13} /> Volver al sitio
           </button>
