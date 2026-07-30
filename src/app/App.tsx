@@ -2632,6 +2632,58 @@ function AdminPage({
   const [editBuf, setEditBuf] = useState<Partial<Product>>({});
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState<"default" | "price-asc" | "price-desc" | "stock-asc" | "stock-desc">("default");
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [newProduct, setNewProduct] = useState({
+    name: "", sku: "", brand: "", category: "", price: "", originalPrice: "",
+    description: "", img: "", badge: "", available: true,
+  });
+  const [addErrors, setAddErrors] = useState<Record<string, string>>({});
+
+  const CATEGORY_OPTIONS = [
+    { id: "electric", name: "Herramientas Eléctricas" },
+    { id: "manual", name: "Herramientas Manuales" },
+    { id: "fixings", name: "Fijaciones y Tornillería" },
+    { id: "paint", name: "Pinturas" },
+    { id: "electrical", name: "Electricidad" },
+    { id: "plumbing", name: "Gasfitería" },
+    { id: "garden", name: "Jardín" },
+    { id: "safety", name: "Seguridad" },
+  ];
+
+  function validateNewProduct() {
+    const e: Record<string, string> = {};
+    if (!newProduct.name.trim()) e.name = "Requerido";
+    if (!newProduct.sku.trim()) e.sku = "Requerido";
+    if (!newProduct.brand.trim()) e.brand = "Requerido";
+    if (!newProduct.category) e.category = "Requerido";
+    if (!newProduct.price || isNaN(Number(newProduct.price)) || Number(newProduct.price) <= 0) e.price = "Precio inválido";
+    if (!newProduct.description.trim()) e.description = "Requerido";
+    return e;
+  }
+
+  function handleAddProduct() {
+    const errs = validateNewProduct();
+    setAddErrors(errs);
+    if (Object.keys(errs).length > 0) return;
+    const id = Math.max(...products.map((p) => p.id)) + 1;
+    setProducts((prev) => [...prev, {
+      id,
+      name: newProduct.name.trim(),
+      sku: newProduct.sku.trim(),
+      brand: newProduct.brand.trim(),
+      category: newProduct.category,
+      price: Number(newProduct.price),
+      originalPrice: newProduct.originalPrice ? Number(newProduct.originalPrice) : undefined,
+      description: newProduct.description.trim(),
+      img: newProduct.img.trim() || "photo-1504307651254-35680f356dfd",
+      badge: newProduct.badge.trim() || undefined,
+      available: newProduct.available,
+      specs: [],
+    }]);
+    setNewProduct({ name: "", sku: "", brand: "", category: "", price: "", originalPrice: "", description: "", img: "", badge: "", available: true });
+    setAddErrors({});
+    setShowAddForm(false);
+  }
   const [seenCount, setSeenCount] = useState(orders.length);
   const [bellOpen, setBellOpen] = useState(false);
 
@@ -2844,6 +2896,103 @@ function AdminPage({
 
         {/* ── PRODUCTOS ── */}
         {tab === "productos" && (
+          <div className="space-y-4">
+
+            {/* Botón agregar / formulario */}
+            {!showAddForm ? (
+              <div className="flex justify-end">
+                <button
+                  onClick={() => setShowAddForm(true)}
+                  className="bg-[#2ECC71] hover:bg-[#27AE60] text-white font-black text-xs uppercase tracking-widest px-4 py-2.5 transition-colors"
+                >
+                  + Agregar producto
+                </button>
+              </div>
+            ) : (
+              <div className="bg-white border border-[#2ECC71] rounded-sm p-5">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="font-black uppercase tracking-tight text-base" style={{ fontFamily: "var(--font-display)" }}>
+                    Nuevo producto
+                  </h3>
+                  <button onClick={() => { setShowAddForm(false); setAddErrors({}); }} className="text-gray-400 hover:text-gray-700 transition-colors">
+                    <X size={18} />
+                  </button>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {[
+                    { label: "Nombre del producto *", key: "name", placeholder: "Taladro Percutor Bosch 550W" },
+                    { label: "SKU *", key: "sku", placeholder: "BSH-GSB550" },
+                    { label: "Marca *", key: "brand", placeholder: "Bosch" },
+                    { label: "Precio CLP *", key: "price", placeholder: "49990", type: "number" },
+                    { label: "Precio original (opcional)", key: "originalPrice", placeholder: "59990", type: "number" },
+                    { label: "Badge (opcional)", key: "badge", placeholder: "Oferta, Más vendido..." },
+                    { label: "ID imagen Unsplash (opcional)", key: "img", placeholder: "photo-1504307651254-35680f356dfd" },
+                  ].map(({ label, key, placeholder, type }) => (
+                    <div key={key}>
+                      <label className="block text-xs font-black uppercase tracking-widest text-gray-500 mb-1">{label}</label>
+                      <input
+                        type={type ?? "text"}
+                        placeholder={placeholder}
+                        value={(newProduct as any)[key]}
+                        onChange={(e) => setNewProduct((p) => ({ ...p, [key]: e.target.value }))}
+                        className={`w-full border ${addErrors[key] ? "border-red-400" : "border-gray-300"} rounded-sm px-3 py-2 text-sm focus:border-[#2ECC71] outline-none`}
+                      />
+                      {addErrors[key] && <p className="text-red-500 text-xs mt-0.5">{addErrors[key]}</p>}
+                    </div>
+                  ))}
+                  <div>
+                    <label className="block text-xs font-black uppercase tracking-widest text-gray-500 mb-1">Categoría *</label>
+                    <select
+                      value={newProduct.category}
+                      onChange={(e) => setNewProduct((p) => ({ ...p, category: e.target.value }))}
+                      className={`w-full border ${addErrors.category ? "border-red-400" : "border-gray-300"} rounded-sm px-3 py-2 text-sm focus:border-[#2ECC71] outline-none bg-white`}
+                    >
+                      <option value="">Seleccionar categoría</option>
+                      {CATEGORY_OPTIONS.map((c) => (
+                        <option key={c.id} value={c.id}>{c.name}</option>
+                      ))}
+                    </select>
+                    {addErrors.category && <p className="text-red-500 text-xs mt-0.5">{addErrors.category}</p>}
+                  </div>
+                  <div className="sm:col-span-2">
+                    <label className="block text-xs font-black uppercase tracking-widest text-gray-500 mb-1">Descripción *</label>
+                    <textarea
+                      placeholder="Descripción del producto..."
+                      value={newProduct.description}
+                      onChange={(e) => setNewProduct((p) => ({ ...p, description: e.target.value }))}
+                      rows={3}
+                      className={`w-full border ${addErrors.description ? "border-red-400" : "border-gray-300"} rounded-sm px-3 py-2 text-sm focus:border-[#2ECC71] outline-none resize-none`}
+                    />
+                    {addErrors.description && <p className="text-red-500 text-xs mt-0.5">{addErrors.description}</p>}
+                  </div>
+                  <div className="sm:col-span-2 flex items-center gap-3">
+                    <label className="text-xs font-black uppercase tracking-widest text-gray-500">Disponibilidad inicial:</label>
+                    <button
+                      type="button"
+                      onClick={() => setNewProduct((p) => ({ ...p, available: !p.available }))}
+                      className={`text-xs font-black uppercase tracking-wide px-3 py-1.5 rounded-sm transition-colors ${newProduct.available ? "bg-green-100 text-green-700" : "bg-red-100 text-red-600"}`}
+                    >
+                      {newProduct.available ? "Disponible" : "No disponible"}
+                    </button>
+                  </div>
+                </div>
+                <div className="flex gap-3 mt-5">
+                  <button
+                    onClick={handleAddProduct}
+                    className="bg-[#2ECC71] hover:bg-[#27AE60] text-white font-black text-xs uppercase tracking-widest px-5 py-2.5 transition-colors"
+                  >
+                    Guardar producto
+                  </button>
+                  <button
+                    onClick={() => { setShowAddForm(false); setAddErrors({}); }}
+                    className="border border-gray-300 text-gray-500 font-semibold text-xs px-4 py-2.5 hover:border-gray-400 transition-colors"
+                  >
+                    Cancelar
+                  </button>
+                </div>
+              </div>
+            )}
+
           <div className="bg-white rounded-sm border border-gray-200 overflow-hidden">
             <table className="w-full text-sm">
               <thead>
@@ -2938,6 +3087,7 @@ function AdminPage({
                 })}
               </tbody>
             </table>
+          </div>
           </div>
         )}
       </div>
