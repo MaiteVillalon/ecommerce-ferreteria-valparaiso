@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ferretería — Hero</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --charcoal: #2B2E33;
+    --charcoal-light: #3A3F45;
+    --orange: #FF6B1A;
+    --yellow: #F2B705;
+    --steel: #A9AFB6;
+    --steel-dark: #6E747B;
+    --paper: #F2F0EB;
+  }
+
+  *{ box-sizing: border-box; }
+
+  body{
+    margin:0;
+    background-color: var(--charcoal);
+    background-image: radial-gradient(circle, rgba(255,255,255,0.09) 1.6px, transparent 1.6px);
+    background-size: 30px 30px;
+    font-family: 'Inter', sans-serif;
+    color: var(--paper);
+    min-height: 100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    overflow-x:hidden;
+  }
+
+  .hero{
+    width:100%;
+    max-width: 1100px;
+    padding: 64px 32px 0;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    text-align:center;
+  }
+
+  /* --- Herramientas colgadas --- */
+  .tools-row{
+    display:flex;
+    gap: clamp(20px, 6vw, 64px);
+    margin-bottom: 12px;
+  }
+
+  .tool{
+    position:relative;
+    transform-origin: top center;
+    opacity:0;
+    animation: drop 0.8s cubic-bezier(.34,1.56,.64,1) forwards, sway 4.5s ease-in-out infinite;
+    animation-delay: var(--delay), calc(var(--delay) + 0.8s);
+    cursor: default;
+  }
+
+  .tool svg{
+    width: clamp(36px, 6vw, 54px);
+    height: auto;
+    stroke: var(--steel);
+    display:block;
+  }
+
+  .tool:hover{
+    animation-play-state: paused;
+  }
+  .tool:hover svg{
+    transform: rotate(10deg);
+    transition: transform 0.3s ease;
+  }
+
+  .tool::before{
+    /* agujero del pegboard */
+    content:"";
+    position:absolute;
+    top:-9px;
+    left:50%;
+    transform: translateX(-50%);
+    width:7px;
+    height:7px;
+    border-radius:50%;
+    background: rgba(0,0,0,0.55);
+    box-shadow: inset 0 1px 1px rgba(0,0,0,0.6);
+  }
+
+  .tool:nth-child(1){ --delay: 0.05s; }
+  .tool:nth-child(2){ --delay: 0.2s; }
+  .tool:nth-child(3){ --delay: 0.35s; }
+  .tool:nth-child(4){ --delay: 0.5s; }
+  .tool:nth-child(5){ --delay: 0.65s; }
+
+  @keyframes drop{
+    0%{ opacity:0; transform: translateY(-70px) rotate(-14deg); }
+    60%{ opacity:1; transform: translateY(6px) rotate(4deg); }
+    100%{ opacity:1; transform: translateY(0) rotate(0deg); }
+  }
+
+  @keyframes sway{
+    0%, 100%{ transform: rotate(-2.5deg); }
+    50%{ transform: rotate(2.5deg); }
+  }
+
+  /* --- Texto --- */
+  .eyebrow{
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    letter-spacing: 0.18em;
+    color: var(--yellow);
+    text-transform: uppercase;
+    margin: 8px 0 4px;
+  }
+
+  h1{
+    font-family: 'Oswald', sans-serif;
+    font-weight: 700;
+    font-size: clamp(48px, 9vw, 96px);
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    line-height: 0.95;
+    margin: 0 0 18px;
+    color: var(--paper);
+    text-shadow: 3px 3px 0 rgba(0,0,0,0.35);
+  }
+
+  h1 span{ color: var(--orange); }
+
+  p.lead{
+    max-width: 480px;
+    font-size: 17px;
+    line-height: 1.6;
+    color: var(--steel);
+    margin: 0 0 32px;
+  }
+
+  /* --- CTA estilo etiqueta de precio --- */
+  .cta{
+    position: relative;
+    display:inline-flex;
+    align-items:center;
+    gap: 10px;
+    background: var(--orange);
+    color: var(--charcoal);
+    font-family:'IBM Plex Mono', monospace;
+    font-weight:500;
+    font-size: 15px;
+    letter-spacing: 0.03em;
+    text-decoration:none;
+    padding: 14px 28px 14px 22px;
+    border-radius: 3px;
+    box-shadow: 0 4px 0 rgba(0,0,0,0.3);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  .cta::before{
+    content:"";
+    width:8px; height:8px;
+    border-radius:50%;
+    background: var(--charcoal);
+    box-shadow: 0 0 0 2px var(--orange), 0 0 0 3px var(--charcoal);
+  }
+  .cta:hover{
+    transform: translateY(2px);
+    box-shadow: 0 2px 0 rgba(0,0,0,0.3);
+  }
+  .cta:focus-visible{
+    outline: 3px solid var(--paper);
+    outline-offset: 3px;
+  }
+
+  /* --- Cinta métrica divisora --- */
+  .tape{
+    margin-top: 56px;
+    width: 100%;
+    height: 46px;
+    background: var(--charcoal-light);
+    position:relative;
+    display:flex;
+    align-items:flex-end;
+    overflow:hidden;
+    border-top: 1px solid rgba(255,255,255,0.08);
+  }
+  .tape .ticks{
+    display:flex;
+    width: 200%;
+    animation: scroll-tape 22s linear infinite;
+  }
+  .tape .tick-group{
+    display:flex;
+    align-items:flex-end;
+  }
+  .tape .tick{
+    width: 16px;
+    height: 10px;
+    border-left: 1px solid var(--steel-dark);
+    flex-shrink:0;
+  }
+  .tape .tick.major{ height: 20px; border-left-width: 2px; border-color: var(--steel); position:relative;}
+  .tape .tick.major span{
+    position:absolute;
+    bottom: 22px;
+    left: -6px;
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--steel);
+  }
+
+  @keyframes scroll-tape{
+    from{ transform: translateX(0); }
+    to{ transform: translateX(-50%); }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .tool, .tape .ticks{ animation: none !important; }
+    .tool{ opacity:1; transform:none; }
+  }
+
+  @media (max-width: 560px){
+    .tools-row{ gap: 18px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="tools-row" aria-hidden="true">
+    <div class="tool"><svg viewBox="0 0 48 48" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M14 6c-4.4 0-8 3.6-8 8 0 1.5.4 2.9 1.1 4.1L4 21.2V26h4.8l3.1-3.1c1.2.7 2.6 1.1 4.1 1.1 4.4 0 8-3.6 8-8s-3.6-8-8-8z" transform="translate(4,4) scale(0.9)"/><path d="M22 26 38 42"/></svg></div>
+    <div class="tool"><svg viewBox="0 0 48 48" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M30 6 42 18l-6 6-4-4-14 14-6-6 14-14-4-4z"/><path d="M8 40l6-6"/></svg></div>
+    <div class="tool"><svg viewBox="0 0 48 48" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6l6 6-16 16-6 2 2-6z"/><path d="M12 38h24"/></svg></div>
+    <div class="tool"><svg viewBox="0 0 48 48" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M24 6l4 4-18 18-4-4z"/><path d="M28 10l6-6 4 4-6 6"/><path d="M10 28l-4 10 10-4"/></svg></div>
+    <div class="tool"><svg viewBox="0 0 48 48" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="16" y="6" width="16" height="10" rx="2"/><path d="M24 16v26"/><path d="M17 42h14"/></svg></div>
+  </div>
+
+  <p class="eyebrow">Desde 1988 · Herramientas y materiales</p>
+  <h1>Ferretería<br><span>Central</span></h1>
+  <p class="lead">Tornillos, herramientas eléctricas, pintura y todo lo que tu próximo proyecto necesita. Stock real, precios de mayorista.</p>
+  <a href="#catalogo" class="cta">Ver catálogo</a>
+
+  <div class="tape" aria-hidden="true">
+    <div class="ticks">
+      <div class="tick-group" id="tick-source"></div>
+      <div class="tick-group" id="tick-clone"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Genera las marcas de la cinta métrica (se duplica para el loop infinito)
+  function buildTicks(container){
+    for(let i=0; i<80; i++){
+      const isMajor = i % 5 === 0;
+      const tick = document.createElement('div');
+      tick.className = 'tick' + (isMajor ? ' major' : '');
+      if(isMajor){
+        const label = document.createElement('span');
+        label.textContent = i;
+        tick.appendChild(label);
+      }
+      container.appendChild(tick);
+    }
+  }
+  const source = document.getElementById('tick-source');
+  buildTicks(source);
+  document.getElementById('tick-clone').innerHTML = source.innerHTML;
+</script>
+
+</body>
+</html>

@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ferretería La Nonna — Iniciar sesión</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --plum: #2F5233;
+    --plum-dark: #1F3A24;
+    --cream: #F7F7F2;
+    --cream-2: #ECEFE7;
+    --gold: #B08A3E;
+    --ok: #4E8B6B;
+  }
+  *{ box-sizing:border-box; }
+  body{
+    margin:0;
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-family:'Inter', sans-serif;
+    background:
+      linear-gradient(rgba(255,255,255,0.6), rgba(255,255,255,0.6)),
+      repeating-linear-gradient(0deg, rgba(91,71,80,0.05) 0 1px, transparent 1px 34px),
+      repeating-linear-gradient(90deg, rgba(91,71,80,0.05) 0 1px, transparent 1px 34px),
+      var(--cream);
+    padding: 24px;
+  }
+
+  .card{
+    width:100%;
+    max-width: 380px;
+    background:#fff;
+    border-radius: 18px;
+    padding: 40px 34px 34px;
+    box-shadow: 0 20px 50px rgba(91,71,80,0.14), 0 2px 8px rgba(91,71,80,0.08);
+  }
+
+  .brand{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    margin-bottom: 30px;
+  }
+  .brand svg{ width:52px; height:52px; margin-bottom:10px; }
+  .brand h1{
+    font-family:'Poppins', sans-serif;
+    font-weight:800;
+    font-size: 19px;
+    letter-spacing: 0.04em;
+    color: var(--plum);
+    margin:0;
+    text-transform:uppercase;
+  }
+  .brand span{
+    font-family:'Poppins', sans-serif;
+    font-weight:600;
+    font-size: 11px;
+    letter-spacing: 0.22em;
+    color: var(--gold);
+    text-transform:uppercase;
+    margin-top:2px;
+  }
+
+  label{
+    display:block;
+    font-size: 12.5px;
+    font-weight:600;
+    color: var(--plum);
+    margin-bottom: 6px;
+    margin-top: 18px;
+  }
+
+  .field{
+    position:relative;
+  }
+
+  input[type="text"]{
+    width:100%;
+    padding: 12px 14px;
+    border-radius: 10px;
+    border: 1.5px solid #E4DBD0;
+    font-family:'Inter', sans-serif;
+    font-size: 14.5px;
+    color: var(--plum-dark);
+    background: var(--cream-2);
+    outline:none;
+    transition: border-color 0.2s ease;
+  }
+  input[type="text"]:focus{ border-color: var(--gold); }
+
+  /* --- campo de contraseña con pernos --- */
+  .pw-field{
+    position:relative;
+    border-radius: 10px;
+    border: 1.5px solid #E4DBD0;
+    background: var(--cream-2);
+    display:flex;
+    align-items:center;
+    padding: 4px 6px 4px 14px;
+    transition: border-color 0.2s ease;
+  }
+  .pw-field:focus-within{ border-color: var(--gold); }
+
+  .pw-real-input{
+    position:absolute;
+    inset:0;
+    width:100%;
+    height:100%;
+    opacity:0;
+    border:none;
+    padding: 12px 14px;
+    font-size:14.5px;
+    font-family:'IBM Plex Mono', monospace;
+    letter-spacing: 2px;
+    z-index:2;
+    background:transparent;
+  }
+  .pw-real-input:focus{ outline:none; }
+
+  .pw-overlay{
+    flex:1;
+    min-height: 24px;
+    display:flex;
+    align-items:center;
+    gap: 3px;
+    padding: 8px 0;
+    pointer-events:none;
+  }
+
+  .pw-placeholder{
+    color:#B7ABA1;
+    font-size: 14px;
+    pointer-events:none;
+  }
+
+  .char-cell{
+    perspective: 200px;
+    width: 22px;
+    height: 26px;
+    flex-shrink:0;
+  }
+  .char-inner{
+    position:relative;
+    width:100%; height:100%;
+    transform-style: preserve-3d;
+    transition: transform 0.5s cubic-bezier(.4,1.6,.4,1);
+  }
+  .pw-overlay.revealed .char-inner{
+    transition-delay: calc(var(--i) * 0.06s);
+    transform: rotateX(180deg);
+  }
+  .char-face{
+    position:absolute;
+    inset:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    backface-visibility:hidden;
+  }
+  .char-bolt{ transform: rotateX(0deg); }
+  .char-letter{
+    transform: rotateX(180deg);
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 15px;
+    font-weight:500;
+    color: var(--plum-dark);
+  }
+  .char-bolt svg{ width:19px; height:19px; }
+
+  .toggle-btn{
+    flex-shrink:0;
+    width: 38px; height: 38px;
+    border-radius: 8px;
+    border:none;
+    background: transparent;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    z-index:3;
+    color: var(--plum);
+    transition: background 0.15s ease;
+  }
+  .toggle-btn:hover{ background: #EADFD0; }
+  .toggle-btn svg{ width:19px; height:19px; transition: transform 0.35s cubic-bezier(.4,1.6,.4,1); }
+  .toggle-btn.active svg{ transform: rotate(-55deg); }
+  .toggle-btn:focus-visible{ outline: 2px solid var(--gold); outline-offset:2px; }
+
+  .hint{
+    font-size: 11.5px;
+    color:#9c8f85;
+    margin-top: 8px;
+  }
+
+  .submit{
+    width:100%;
+    margin-top: 26px;
+    background: var(--plum);
+    color:#fff;
+    border:none;
+    border-radius: 10px;
+    padding: 13px;
+    font-family:'Inter', sans-serif;
+    font-weight:600;
+    font-size: 14.5px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    cursor:pointer;
+    transition: background 0.2s ease, transform 0.15s ease;
+  }
+  .submit:hover{ background: var(--plum-dark); }
+  .submit:active{ transform: scale(0.98); }
+  .submit svg{ width:16px; height:16px; }
+  .submit .shackle{ transition: transform 0.3s cubic-bezier(.4,1.6,.4,1); transform-origin: 8px 6px; }
+  .submit.unlocked .shackle{ transform: translateY(-2px) rotate(-18deg); }
+
+  .footer-link{
+    text-align:center;
+    margin-top: 18px;
+    font-size: 12.5px;
+    color: #9c8f85;
+  }
+  .footer-link a{ color: var(--gold); text-decoration:none; font-weight:600; }
+</style>
+</head>
+<body>
+
+<div class="card">
+  <div class="brand">
+    <svg viewBox="0 0 64 64" fill="none">
+      <path d="M32 6L54 26H10L32 6z" fill="#2F5233"/>
+      <rect x="16" y="26" width="32" height="26" fill="#2F5233"/>
+      <path d="M26 30l14 14M40 30l-14 14" stroke="#F7F7F2" stroke-width="3" stroke-linecap="round"/>
+      <circle cx="33" cy="37" r="9" fill="none" stroke="#F7F7F2" stroke-width="3"/>
+    </svg>
+    <h1>Ferretería La Nonna</h1>
+    <span>Acceso clientes</span>
+  </div>
+
+  <form id="loginForm">
+    <label for="user">Usuario o correo</label>
+    <div class="field">
+      <input type="text" id="user" placeholder="tuemail@ejemplo.com" autocomplete="username">
+    </div>
+
+    <label for="pwReal">Contraseña</label>
+    <div class="pw-field">
+      <div class="pw-overlay" id="pwOverlay">
+        <span class="pw-placeholder" id="pwPlaceholder">••••••••</span>
+      </div>
+      <input type="text" id="pwReal" class="pw-real-input" autocomplete="current-password">
+      <button type="button" class="toggle-btn" id="toggleBtn" aria-label="Mostrar contraseña">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94z"/>
+        </svg>
+      </button>
+    </div>
+    <p class="hint">Toca la llave para destornillar y revisar tu contraseña</p>
+
+    <button type="submit" class="submit" id="submitBtn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="4" y="11" width="16" height="9" rx="2"/>
+        <path class="shackle" d="M8 11V7a4 4 0 0 1 8 0v4"/>
+      </svg>
+      Iniciar sesión
+    </button>
+
+    <p class="footer-link">¿Aún no tienes cuenta? <a href="#">Regístrate</a></p>
+  </form>
+</div>
+
+<script>
+  const pwReal = document.getElementById('pwReal');
+  const pwOverlay = document.getElementById('pwOverlay');
+  const pwPlaceholder = document.getElementById('pwPlaceholder');
+  const toggleBtn = document.getElementById('toggleBtn');
+  const submitBtn = document.getElementById('submitBtn');
+
+  let revealed = false;
+
+  const boltSVG = `<svg viewBox="0 0 24 24"><path d="M12 2.5 20 7v10l-8 4.5-8-4.5V7z" fill="#2F5233" stroke="#2F5233" stroke-width="1.2" stroke-linejoin="round"/><circle cx="12" cy="12" r="4.2" fill="#F7F7F2"/></svg>`;
+
+  function renderOverlay(){
+    const val = pwReal.value;
+    if(val.length === 0){
+      pwOverlay.innerHTML = '';
+      pwOverlay.appendChild(pwPlaceholder);
+      return;
+    }
+    pwOverlay.innerHTML = '';
+    [...val].forEach((ch, i)=>{
+      const cell = document.createElement('div');
+      cell.className = 'char-cell';
+      cell.style.setProperty('--i', i);
+      cell.innerHTML = `
+        <div class="char-inner">
+          <div class="char-face char-bolt">${boltSVG}</div>
+          <div class="char-face char-letter">${ch}</div>
+        </div>`;
+      pwOverlay.appendChild(cell);
+    });
+    pwOverlay.classList.toggle('revealed', revealed);
+  }
+
+  pwReal.addEventListener('input', renderOverlay);
+
+  toggleBtn.addEventListener('click', ()=>{
+    revealed = !revealed;
+    toggleBtn.classList.toggle('active', revealed);
+    toggleBtn.setAttribute('aria-label', revealed ? 'Ocultar contraseña' : 'Mostrar contraseña');
+    pwOverlay.classList.toggle('revealed', revealed);
+  });
+
+  document.getElementById('loginForm').addEventListener('submit', (e)=>{
+    e.preventDefault();
+    submitBtn.classList.add('unlocked');
+    setTimeout(()=> submitBtn.classList.remove('unlocked'), 900);
+  });
+
+  renderOverlay();
+</script>
+
+</body>
+</html>
