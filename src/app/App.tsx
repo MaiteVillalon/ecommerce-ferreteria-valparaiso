@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import emailjs from "@emailjs/browser";
 import { motion, AnimatePresence } from "motion/react";
 import {
   ShoppingCart, Search, MapPin, Clock, Phone, X, Check,
@@ -39,6 +40,16 @@ interface Order {
   invoiceData?: InvoiceData;
 }
 interface User { name: string; email: string; phone: string; }
+interface ContactMessage {
+  id: string;
+  date: string;
+  name: string;
+  email: string;
+  phone: string;
+  subject: string;
+  message: string;
+  read: boolean;
+}
 type Page = "home" | "catalog" | "product" | "cart" | "checkout" | "confirmation" | "nosotros" | "contacto" | "admin" | "auth";
 type NavigateFn = (page: Page, product?: Product) => void;
 type AddToCartFn = (product: Product, qty?: number) => void;
@@ -2524,9 +2535,10 @@ function NosotrosPage({ navigate }: { navigate: NavigateFn }) {
 }
 
 // ─── CONTACTO PAGE ───────────────────────────────────────────────────────────
-function ContactoPage() {
+function ContactoPage({ onSend }: { onSend: (msg: ContactMessage) => void }) {
   const [form, setForm] = useState({ name: "", email: "", phone: "", subject: "", message: "" });
   const [sent, setSent] = useState(false);
+  const [sending, setSending] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const validate = () => {
@@ -2538,11 +2550,37 @@ function ContactoPage() {
     return e;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const errs = validate();
     setErrors(errs);
     if (Object.keys(errs).length > 0) return;
+
+    setSending(true);
+    try {
+      await emailjs.send(
+        import.meta.env.VITE_EMAILJS_SERVICE_ID,
+        import.meta.env.VITE_EMAILJS_TEMPLATE_ID,
+        {
+          from_name: form.name,
+          from_email: form.email,
+          phone: form.phone,
+          subject: form.subject,
+          message: form.message,
+        },
+        import.meta.env.VITE_EMAILJS_PUBLIC_KEY,
+      );
+    } catch {
+      // Si EmailJS no está configurado, igual guardamos en admin
+    }
+
+    onSend({
+      id: Date.now().toString(),
+      date: new Date().toLocaleString("es-CL"),
+      ...form,
+      read: false,
+    });
+    setSending(false);
     setSent(true);
   };
 
@@ -2652,9 +2690,10 @@ function ContactoPage() {
 
               <button
                 type="submit"
-                className="sm:col-span-2 mt-1 bg-[#2ECC71] hover:bg-[#27AE60] text-[#08240F] font-bold text-sm rounded-[10px] py-3.5 transition-colors active:scale-[0.98]"
+                disabled={sending}
+                className="sm:col-span-2 mt-1 bg-[#2ECC71] hover:bg-[#27AE60] disabled:opacity-60 text-[#08240F] font-bold text-sm rounded-[10px] py-3.5 transition-colors active:scale-[0.98]"
               >
-                Enviar mensaje
+                {sending ? "Enviando..." : "Enviar mensaje"}
               </button>
             </form>
           )}
@@ -2761,15 +2800,18 @@ function OrderCard({ order, updateStatus }: { order: Order; updateStatus: (id: s
 }
 
 function AdminPage({
-  orders, setOrders, products, setProducts, navigate,
+  orders, setOrders, products, setProducts, navigate, contactMessages, setContactMessages,
 }: {
   orders: Order[];
   setOrders: React.Dispatch<React.SetStateAction<Order[]>>;
   products: Product[];
   setProducts: React.Dispatch<React.SetStateAction<Product[]>>;
   navigate: NavigateFn;
+  contactMessages: ContactMessage[];
+  setContactMessages: React.Dispatch<React.SetStateAction<ContactMessage[]>>;
 }) {
-  const [tab, setTab] = useState<"pedidos" | "historial" | "productos">("pedidos");
+  const [tab, setTab] = useState<"pedidos" | "historial" | "productos" | "mensajes">("pedidos");
+  const unreadCount = contactMessages.filter((m) => !m.read).length;
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editBuf, setEditBuf] = useState<Partial<Product>>({});
   const [search, setSearch] = useState("");
@@ -2862,10 +2904,11 @@ function AdminPage({
     );
   }
 
-  const TAB_LABELS: { key: typeof tab; label: string; count?: number }[] = [
-    { key: "pedidos",   label: "Pedidos",  count: activeOrders.length },
+  const TAB_LABELS: { key: typeof tab; label: string; count?: number; alert?: boolean }[] = [
+    { key: "pedidos",   label: "Pedidos",   count: activeOrders.length },
     { key: "historial", label: "Historial", count: historyOrders.length },
     { key: "productos", label: "Productos", count: products.length },
+    { key: "mensajes",  label: "Mensajes",  count: contactMessages.length, alert: unreadCount > 0 },
   ];
 
   return (
@@ -2942,17 +2985,26 @@ function AdminPage({
 
       {/* tabs */}
       <div className="border-b border-gray-200 bg-white px-6 flex gap-0">
-        {TAB_LABELS.map(({ key, label, count }) => (
+        {TAB_LABELS.map(({ key, label, count, alert }) => (
           <button key={key}
-            onClick={() => { setTab(key); setSearch(""); setEditingId(null); }}
+            onClick={() => {
+              setTab(key);
+              setSearch("");
+              setEditingId(null);
+              if (key === "mensajes") {
+                setContactMessages((prev) => prev.map((m) => ({ ...m, read: true })));
+              }
+            }}
             className={`px-5 py-3.5 text-sm font-semibold border-b-2 transition-colors flex items-center gap-2 ${
               tab === key ? "border-[#2ECC71] text-[#1C1C1C]" : "border-transparent text-gray-400 hover:text-gray-700"
             }`}
           >
             {label}
             {count !== undefined && (
-              <span className={`text-[11px] px-1.5 py-0.5 rounded-full font-bold ${tab === key ? "bg-[#2ECC71] text-white" : "bg-gray-100 text-gray-500"}`}>
-                {count}
+              <span className={`text-[11px] px-1.5 py-0.5 rounded-full font-bold ${
+                alert && tab !== key ? "bg-red-500 text-white" : tab === key ? "bg-[#2ECC71] text-white" : "bg-gray-100 text-gray-500"
+              }`}>
+                {alert && tab !== key ? unreadCount : count}
               </span>
             )}
           </button>
@@ -3244,6 +3296,61 @@ function AdminPage({
           </div>
           </div>
         )}
+
+        {/* ── MENSAJES ── */}
+        {tab === "mensajes" && (
+          <div className="space-y-3">
+            {contactMessages.length === 0 ? (
+              <div className="bg-white rounded-sm border border-gray-200 p-12 text-center text-gray-400">
+                <Package size={32} className="mx-auto mb-3 opacity-25" />
+                <p className="font-semibold text-sm">Sin mensajes aún</p>
+                <p className="text-xs mt-1">Los mensajes del formulario de contacto aparecerán aquí.</p>
+              </div>
+            ) : (
+              contactMessages
+                .filter((m) => {
+                  const q = search.toLowerCase();
+                  return !q || m.name.toLowerCase().includes(q) || m.email.toLowerCase().includes(q) || m.subject.toLowerCase().includes(q);
+                })
+                .map((m) => (
+                  <div key={m.id} className={`bg-white border rounded-sm overflow-hidden ${!m.read ? "border-[#2ECC71]" : "border-gray-200"}`}>
+                    <div className={`flex flex-wrap items-center justify-between gap-3 px-5 py-3 border-b ${!m.read ? "bg-[#f0fdf4] border-[#2ECC71]/30" : "bg-gray-50 border-gray-100"}`}>
+                      <div className="flex items-center gap-2.5">
+                        <span className="font-black text-sm text-[#1C1C1C]">{m.name}</span>
+                        {!m.read && (
+                          <span className="text-[10px] font-black uppercase bg-[#2ECC71] text-white px-2 py-0.5 rounded-full">Nuevo</span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <span className="text-xs text-gray-400 flex items-center gap-1"><Clock size={11} />{m.date}</span>
+                        <button
+                          onClick={() => setContactMessages((prev) => prev.filter((x) => x.id !== m.id))}
+                          className="text-gray-300 hover:text-red-400 transition-colors"
+                        >
+                          <X size={14} />
+                        </button>
+                      </div>
+                    </div>
+                    <div className="px-5 py-4 grid sm:grid-cols-2 gap-4 text-sm">
+                      <div>
+                        <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1">Contacto</p>
+                        <p className="text-gray-700">{m.email}</p>
+                        {m.phone && <p className="text-gray-400 text-xs mt-0.5">{m.phone}</p>}
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1">Motivo</p>
+                        <p className="text-gray-700">{m.subject}</p>
+                      </div>
+                      <div className="sm:col-span-2">
+                        <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1">Mensaje</p>
+                        <p className="text-gray-700 leading-relaxed">{m.message}</p>
+                      </div>
+                    </div>
+                  </div>
+                ))
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -3258,6 +3365,7 @@ export default function App() {
   const [lastOrder, setLastOrder] = useState<Order | null>(null);
   const [orders, setOrders] = useState<Order[]>([]);
   const [products, setProducts] = useState<Product[]>(PRODUCTS);
+  const [contactMessages, setContactMessages] = useState<ContactMessage[]>([]);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [isGuest, setIsGuest] = useState(false);
 
@@ -3330,7 +3438,7 @@ export default function App() {
           <NosotrosPage navigate={navigate} />
         )}
         {page === "contacto" && (
-          <ContactoPage />
+          <ContactoPage onSend={(msg) => setContactMessages((prev) => [msg, ...prev])} />
         )}
         {page === "auth" && (
           <AuthPage
@@ -3344,6 +3452,8 @@ export default function App() {
             orders={orders} setOrders={setOrders}
             products={products} setProducts={setProducts}
             navigate={navigate}
+            contactMessages={contactMessages}
+            setContactMessages={setContactMessages}
           />
         )}
       </main>
