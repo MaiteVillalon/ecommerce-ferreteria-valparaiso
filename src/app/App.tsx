@@ -915,7 +915,7 @@ function HomePage({ navigate, addToCart, products }: { navigate: NavigateFn; add
                 <Phone size={18} className="text-[#2ECC71] mt-0.5 shrink-0" />
                 <div>
                   <p className="font-bold text-sm">+56 32 221 4589</p>
-                  <p className="text-sm text-gray-500">WhatsApp: +56 9 8765 4321</p>
+                  <p className="text-sm text-gray-500">WhatsApp: +56 9 7870 0018</p>
                 </div>
               </div>
             </div>
@@ -3829,7 +3829,7 @@ export default function App() {
 
       {/* WhatsApp floating button */}
       <a
-        href="https://wa.me/56987654321"
+        href="https://wa.me/56978700018"
         target="_blank"
         rel="noopener noreferrer"
         className="fixed bottom-5 right-5 z-50 flex items-center gap-2.5 bg-[#25D366] hover:bg-[#1ebe57] text-white font-bold text-sm px-4 py-3 rounded-full shadow-lg transition-all duration-200 hover:scale-105 hover:shadow-xl group"
