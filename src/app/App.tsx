@@ -3832,7 +3832,7 @@ export default function App() {
         href="https://wa.me/56978700018"
         target="_blank"
         rel="noopener noreferrer"
-        className="fixed bottom-5 right-5 z-50 flex items-center gap-2.5 bg-[#25D366] hover:bg-[#1ebe57] text-white font-bold text-sm px-4 py-3 rounded-full shadow-lg transition-all duration-200 hover:scale-105 hover:shadow-xl group"
+        className="fixed bottom-5 right-5 z-50 flex items-center gap-2.5 bg-[#25D366] hover:bg-[#1ebe57] text-white font-bold text-sm px-4 py-3 rounded-full shadow-[0_4px_20px_rgba(0,0,0,0.35)] ring-[3px] ring-white transition-all duration-200 hover:scale-105 hover:shadow-[0_6px_28px_rgba(0,0,0,0.4)] group"
         aria-label="Contactar por WhatsApp"
       >
         <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5 shrink-0">
