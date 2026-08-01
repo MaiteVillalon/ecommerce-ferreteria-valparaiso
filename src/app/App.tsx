@@ -665,34 +665,6 @@ function Header({ navigate, cartCount, cliente, onLogout }: { navigate: Navigate
             ))}
           </div>
 
-          {/* user indicator / auth buttons */}
-          {cliente ? (
-            <div className="hidden md:flex items-center gap-2 px-3 py-1.5 text-[12px] text-gray-300">
-              <button onClick={() => navigate("mi-cuenta")} className="flex items-center gap-2 hover:text-white transition-colors">
-                <div className="w-5 h-5 rounded-full bg-[#2ECC71] flex items-center justify-center text-white font-black text-[9px]">
-                  {(cliente.nombre || cliente.email).charAt(0).toUpperCase()}
-                </div>
-                <span className="max-w-[80px] truncate">{(cliente.nombre || cliente.email).split(" ")[0]}</span>
-              </button>
-              <button onClick={onLogout} className="text-gray-500 hover:text-white text-[10px] transition-colors">(salir)</button>
-            </div>
-          ) : (
-            <div className="hidden md:flex items-center gap-1">
-              <button
-                onClick={() => navigate("auth")}
-                className="px-3 py-1.5 text-[12px] font-medium text-gray-300 hover:text-white rounded-full transition-colors whitespace-nowrap"
-              >
-                Iniciar sesión
-              </button>
-              <button
-                onClick={() => navigate("auth")}
-                className="px-3 py-1.5 text-[12px] font-bold bg-white text-[#1C1C1C] hover:bg-gray-100 rounded-full transition-colors whitespace-nowrap"
-              >
-                Crear cuenta
-              </button>
-            </div>
-          )}
-
           {/* cart CTA */}
           <button
             onClick={() => navigate("cart")}
@@ -714,6 +686,36 @@ function Header({ navigate, cartCount, cliente, onLogout }: { navigate: Navigate
           >
             {mobileOpen ? <X size={18} /> : <Menu size={18} />}
           </button>
+        </div>
+
+        {/* user indicator / auth buttons — right side */}
+        <div className="ml-auto hidden md:flex items-center gap-2 shrink-0">
+          {cliente ? (
+            <div className="flex items-center gap-2 text-[12px] text-gray-300">
+              <button onClick={() => navigate("mi-cuenta")} className="flex items-center gap-2 hover:text-white transition-colors">
+                <div className="w-6 h-6 rounded-full bg-[#2ECC71] flex items-center justify-center text-white font-black text-[10px]">
+                  {(cliente.nombre || cliente.email).charAt(0).toUpperCase()}
+                </div>
+                <span className="max-w-[80px] truncate">{(cliente.nombre || cliente.email).split(" ")[0]}</span>
+              </button>
+              <button onClick={onLogout} className="text-gray-500 hover:text-white text-[10px] transition-colors">(salir)</button>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => navigate("auth")}
+                className="px-4 py-1.5 text-[12px] font-medium text-gray-300 hover:text-white transition-colors whitespace-nowrap"
+              >
+                Iniciar sesión
+              </button>
+              <button
+                onClick={() => navigate("auth")}
+                className="px-4 py-1.5 text-[12px] font-bold bg-[#2ECC71] hover:bg-[#27AE60] text-white rounded-full transition-colors whitespace-nowrap"
+              >
+                Crear cuenta
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
@@ -796,11 +798,28 @@ function HomePage({ navigate, addToCart, products }: { navigate: NavigateFn; add
       <HeroSlideshow onSearch={handleSearch} searchVal={searchVal} setSearchVal={setSearchVal} />
 
       {/* Delivery zone notice */}
-      <div className="bg-[#1C1C1C] border-b border-[#2ECC71]/30 py-2 px-4">
-        <p className="text-center text-xs font-semibold text-gray-300 flex items-center justify-center gap-2">
-          <MapPin size={12} className="text-[#2ECC71] shrink-0" />
-          Despacho a domicilio disponible solo en <span className="text-white font-bold">Placilla y Curauma</span>
-        </p>
+      <div className="bg-[#2ECC71] py-3 px-4">
+        <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-center gap-x-6 gap-y-1">
+          <div className="flex items-center gap-2">
+            <div className="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center shrink-0">
+              <MapPin size={14} className="text-white" />
+            </div>
+            <div>
+              <p className="text-[11px] text-white/70 font-semibold uppercase tracking-widest leading-none">Despacho a domicilio</p>
+              <p className="text-sm font-black text-white leading-tight">Solo Placilla y Curauma</p>
+            </div>
+          </div>
+          <div className="w-px h-8 bg-white/30 hidden sm:block" />
+          <div className="flex items-center gap-2">
+            <div className="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center shrink-0">
+              <Store size={14} className="text-white" />
+            </div>
+            <div>
+              <p className="text-[11px] text-white/70 font-semibold uppercase tracking-widest leading-none">Retiro en tienda</p>
+              <p className="text-sm font-black text-white leading-tight">Av. Obispo Valdés 533, Placilla</p>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Category Hover Effect */}
@@ -1278,12 +1297,21 @@ function ProductPage({
             </button>
           </div>
 
-          {/* Pickup notice */}
-          <div className="flex items-start gap-2.5 bg-gray-50 border border-gray-200 px-3.5 py-3 text-xs text-gray-600">
-            <Store size={13} className="text-[#2ECC71] mt-0.5 shrink-0" />
-            <div>
-              <p className="font-bold text-gray-800">Solo retiro en tienda</p>
-              <p>Av. Obispo Valdés Subercaseaux 533, Placilla, Valparaíso · Lun–Vie 8:00–18:30 · Sáb 9:00–14:00</p>
+          {/* Pickup / delivery notice */}
+          <div className="border border-[#2ECC71]/40 bg-[#f0fdf4] px-3.5 py-3 text-xs text-gray-600 space-y-2">
+            <div className="flex items-start gap-2.5">
+              <Store size={13} className="text-[#2ECC71] mt-0.5 shrink-0" />
+              <div>
+                <p className="font-bold text-gray-800">Retiro en tienda</p>
+                <p>Av. Obispo Valdés Subercaseaux 533, Placilla · Lun–Vie 8:00–18:30 · Sáb 9:00–14:00</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-2.5">
+              <MapPin size={13} className="text-[#2ECC71] mt-0.5 shrink-0" />
+              <div>
+                <p className="font-bold text-gray-800">Despacho a domicilio</p>
+                <p>Disponible en <strong>Placilla y Curauma</strong></p>
+              </div>
             </div>
           </div>
 
@@ -1788,15 +1816,17 @@ function CartPage({
               </div>
             </div>
 
-            <div className="bg-[#1C1C1C] p-4 text-xs text-gray-300">
-              <div className="flex items-center gap-2 mb-1.5">
+            <div className="bg-[#1C1C1C] p-4 text-xs text-gray-300 space-y-2">
+              <div className="flex items-center gap-2">
                 <Store size={12} className="text-[#2ECC71] shrink-0" />
-                <span className="font-black text-[#2ECC71] uppercase tracking-widest text-[11px]">
-                  Solo retiro en tienda
-                </span>
+                <span className="font-black text-[#2ECC71] uppercase tracking-widest text-[11px]">Retiro en tienda</span>
               </div>
-              <p>Av. Obispo Valdés Subercaseaux 533, Placilla, Valparaíso</p>
-              <p className="text-gray-500">Lun–Vie 08:00–18:30 · Sáb 09:00–14:00</p>
+              <p>Av. Obispo Valdés Subercaseaux 533, Placilla</p>
+              <div className="flex items-center gap-2 pt-1">
+                <MapPin size={12} className="text-[#2ECC71] shrink-0" />
+                <span className="font-black text-[#2ECC71] uppercase tracking-widest text-[11px]">Despacho</span>
+              </div>
+              <p>Solo en <span className="text-white font-semibold">Placilla y Curauma</span></p>
             </div>
 
             <div className="p-4">
@@ -2387,36 +2417,69 @@ function ConfirmationPage({ orderNum, order, navigate }: { orderNum: string; ord
         )}
 
         <div className="bg-[#1C1C1C] p-5 space-y-4">
-          <p className="text-xs font-black uppercase tracking-widest text-[#2ECC71] mb-3">Información de retiro</p>
+          <p className="text-xs font-black uppercase tracking-widest text-[#2ECC71] mb-3">
+            {order?.metodo_entrega === "despacho" ? "Información de entrega" : "Información de retiro"}
+          </p>
 
-          <div className="flex items-start gap-3">
-            <MapPin size={15} className="text-[#2ECC71] mt-0.5 shrink-0" />
-            <div>
-              <p className="text-sm font-bold text-white">Av. Obispo Valdés Subercaseaux 533, Placilla, Valparaíso</p>
-              <p className="text-xs text-gray-400 mt-0.5">Mesón de atención · Acceso principal</p>
-            </div>
-          </div>
-
-          <div className="flex items-start gap-3">
-            <Clock size={15} className="text-[#2ECC71] mt-0.5 shrink-0" />
-            <div>
-              <p className="text-sm font-bold text-white">Lun–Vie: 08:00–18:30 · Sáb: 09:00–14:00</p>
-              <p className="text-xs text-gray-400 mt-0.5">
-                Tu pedido estará listo en <strong className="text-white">2 horas hábiles</strong>
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-start gap-3">
-            <Package size={15} className="text-[#2ECC71] mt-0.5 shrink-0" />
-            <div>
-              <p className="text-sm font-bold text-white">Documentos para retirar</p>
-              <p className="text-xs text-gray-400 mt-0.5">
-                Cédula de identidad + número de pedido{" "}
-                <strong className="text-[#2ECC71]">{orderNum}</strong>
-              </p>
-            </div>
-          </div>
+          {order?.metodo_entrega === "despacho" ? (
+            <>
+              <div className="flex items-start gap-3">
+                <MapPin size={15} className="text-[#2ECC71] mt-0.5 shrink-0" />
+                <div>
+                  <p className="text-sm font-bold text-white">Despacho a domicilio</p>
+                  <p className="text-xs text-gray-300 mt-0.5">{order.direccion_despacho}</p>
+                  <p className="text-xs text-gray-500 mt-0.5">Zona: Placilla / Curauma</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <Clock size={15} className="text-[#2ECC71] mt-0.5 shrink-0" />
+                <div>
+                  <p className="text-sm font-bold text-white">Tiempo estimado de entrega</p>
+                  <p className="text-xs text-gray-400 mt-0.5">
+                    Te contactaremos para coordinar la entrega
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <Package size={15} className="text-[#2ECC71] mt-0.5 shrink-0" />
+                <div>
+                  <p className="text-sm font-bold text-white">N° de seguimiento</p>
+                  <p className="text-xs text-gray-400 mt-0.5">
+                    Pedido <strong className="text-[#2ECC71]">{orderNum}</strong>
+                  </p>
+                </div>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="flex items-start gap-3">
+                <MapPin size={15} className="text-[#2ECC71] mt-0.5 shrink-0" />
+                <div>
+                  <p className="text-sm font-bold text-white">Av. Obispo Valdés Subercaseaux 533, Placilla, Valparaíso</p>
+                  <p className="text-xs text-gray-400 mt-0.5">Mesón de atención · Acceso principal</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <Clock size={15} className="text-[#2ECC71] mt-0.5 shrink-0" />
+                <div>
+                  <p className="text-sm font-bold text-white">Lun–Vie: 08:00–18:30 · Sáb: 09:00–14:00</p>
+                  <p className="text-xs text-gray-400 mt-0.5">
+                    Tu pedido estará listo en <strong className="text-white">2 horas hábiles</strong>
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <Package size={15} className="text-[#2ECC71] mt-0.5 shrink-0" />
+                <div>
+                  <p className="text-sm font-bold text-white">Documentos para retirar</p>
+                  <p className="text-xs text-gray-400 mt-0.5">
+                    Cédula de identidad + número de pedido{" "}
+                    <strong className="text-[#2ECC71]">{orderNum}</strong>
+                  </p>
+                </div>
+              </div>
+            </>
+          )}
         </div>
       </div>
 
@@ -2480,7 +2543,7 @@ function Footer({ navigate }: { navigate: NavigateFn }) {
               Nosotros
             </button>
             <p>Retiro en tienda</p>
-            <p>Sin despacho a domicilio</p>
+            <p>Despacho en Placilla y Curauma</p>
           </div>
         </div>
         <div className="border-t border-gray-800 pt-5 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs">
@@ -2881,6 +2944,26 @@ function OrderCard({ order, updateStatus }: { order: Pedido; updateStatus: (id: 
                 {order.tipo_documento === "factura" ? "Factura" : "Boleta"}
               </span>
             </div>
+          </div>
+
+          <div className={`flex items-start gap-2 rounded-sm px-3 py-2 text-xs ${order.metodo_entrega === "despacho" ? "bg-orange-50 border border-orange-200" : "bg-[#f0fdf4] border border-[#2ECC71]/30"}`}>
+            {order.metodo_entrega === "despacho" ? (
+              <>
+                <MapPin size={12} className="text-orange-500 mt-0.5 shrink-0" />
+                <div>
+                  <p className="font-black uppercase tracking-widest text-orange-600 text-[10px]">Despacho a domicilio</p>
+                  <p className="text-gray-700 mt-0.5">{order.direccion_despacho ?? "—"}</p>
+                </div>
+              </>
+            ) : (
+              <>
+                <Store size={12} className="text-[#2ECC71] mt-0.5 shrink-0" />
+                <div>
+                  <p className="font-black uppercase tracking-widest text-[#2ECC71] text-[10px]">Retiro en tienda</p>
+                  <p className="text-gray-500 mt-0.5">Av. Obispo Valdés 533, Placilla</p>
+                </div>
+              </>
+            )}
           </div>
 
           {order.tipo_documento === "factura" && order.factura_rut && (

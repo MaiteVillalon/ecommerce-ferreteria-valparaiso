@@ -31,6 +31,8 @@ export interface Pedido {
   factura_giro: string | null;
   factura_direccion: string | null;
   factura_comuna: string | null;
+  metodo_entrega: "retiro" | "despacho" | null;
+  direccion_despacho: string | null;
   created_at: string;
   pedido_items: PedidoItem[];
   /** Solo presente cuando se consulta con listarTodosPedidos() (admin) */
@@ -59,6 +61,8 @@ export interface NuevoPedidoInput {
   factura_giro?: string;
   factura_direccion?: string;
   factura_comuna?: string;
+  metodo_entrega?: "retiro" | "despacho";
+  direccion_despacho?: string;
   items: NuevoPedidoItemInput[];
 }
 
@@ -109,6 +113,8 @@ export async function crearPedido(input: NuevoPedidoInput): Promise<Pedido> {
     factura_giro: pedidoFields.factura_giro ?? null,
     factura_direccion: pedidoFields.factura_direccion ?? null,
     factura_comuna: pedidoFields.factura_comuna ?? null,
+    metodo_entrega: pedidoFields.metodo_entrega ?? null,
+    direccion_despacho: pedidoFields.direccion_despacho ?? null,
     created_at: fecha,
     pedido_items: items.map((item, idx) => ({
       id: `local-${idx}`,
