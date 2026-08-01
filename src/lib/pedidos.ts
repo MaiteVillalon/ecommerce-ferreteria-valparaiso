@@ -1,6 +1,6 @@
 import { supabase } from "./supabase";
 
-export type EstadoPedido = "pendiente" | "pagado" | "listo_para_retiro" | "completado" | "cancelado";
+export type EstadoPedido = "pendiente" | "en_preparacion" | "listo_para_retiro" | "completado";
 export type TipoDocumento = "boleta" | "factura";
 
 export interface PedidoItem {

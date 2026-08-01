@@ -2898,14 +2898,13 @@ function ContactoPage({ onSend }: { onSend: (msg: ContactMessage) => void }) {
 
 // ─── ADMIN PAGE ──────────────────────────────────────────────────────────────
 const ESTADO_CARD: Record<EstadoPedido, { border: string; header: string }> = {
-  pendiente:          { border: "border-red-400",    header: "border-red-200 bg-red-50" },
-  pagado:              { border: "border-yellow-400", header: "border-yellow-200 bg-yellow-50" },
-  listo_para_retiro:   { border: "border-[#2ECC71]",  header: "border-[#2ECC71]/30 bg-[#f0fdf4]" },
-  completado:          { border: "border-blue-300",   header: "border-blue-200 bg-blue-50" },
-  cancelado:           { border: "border-gray-200",   header: "border-gray-100" },
+  pendiente:         { border: "border-red-400",    header: "border-red-200 bg-red-50" },
+  en_preparacion:    { border: "border-yellow-400", header: "border-yellow-200 bg-yellow-50" },
+  listo_para_retiro: { border: "border-[#2ECC71]",  header: "border-[#2ECC71]/30 bg-[#f0fdf4]" },
+  completado:        { border: "border-blue-300",   header: "border-blue-200 bg-blue-50" },
 };
 
-const ESTADO_ORDEN: EstadoPedido[] = ["pendiente", "pagado", "listo_para_retiro", "completado", "cancelado"];
+const ESTADO_ORDEN: EstadoPedido[] = ["pendiente", "en_preparacion", "listo_para_retiro", "completado"];
 
 function OrderCard({ order, updateStatus }: { order: Pedido; updateStatus: (id: string, s: EstadoPedido) => void }) {
   const cardStyle = ESTADO_CARD[order.estado];
@@ -3119,9 +3118,9 @@ function AdminPage({
     }
   }
 
-  // active = no completado/cancelado; history = completado/cancelado
-  const activeOrders = orders.filter((o) => o.estado !== "completado" && o.estado !== "cancelado");
-  const historyOrders = orders.filter((o) => o.estado === "completado" || o.estado === "cancelado");
+  // active = no completado; history = completado
+  const activeOrders = orders.filter((o) => o.estado !== "completado");
+  const historyOrders = orders.filter((o) => o.estado === "completado");
   const readyOrders = activeOrders.filter((o) => o.estado === "listo_para_retiro");
   const inProgressOrders = activeOrders.filter((o) => o.estado !== "listo_para_retiro");
 
