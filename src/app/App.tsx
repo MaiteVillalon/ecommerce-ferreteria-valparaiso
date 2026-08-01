@@ -6,7 +6,7 @@ import {
   ShoppingCart, Search, MapPin, Clock, Phone, X, Check,
   ChevronDown, ChevronUp, Store, ArrowLeft, ChevronRight,
   Package, Menu, Filter, Zap, Wrench, Plug, Droplets, Leaf,
-  ShieldCheck, Paintbrush, ScanBarcode
+  ShieldCheck, Paintbrush, ScanBarcode, Truck
 } from "lucide-react";
 import { ImageWithFallback } from "@/app/components/figma/ImageWithFallback";
 import { HeroSlideshow } from "@/app/components/HeroSlideshow";
@@ -801,7 +801,7 @@ function HomePage({ navigate, addToCart, products }: { navigate: NavigateFn; add
         <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-center gap-x-6 gap-y-1">
           <div className="flex items-center gap-2">
             <div className="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center shrink-0">
-              <MapPin size={14} className="text-white" />
+              <Truck size={14} className="text-white" />
             </div>
             <div>
               <p className="text-[11px] text-white/70 font-semibold uppercase tracking-widest leading-none">Despacho a domicilio</p>
@@ -1306,7 +1306,7 @@ function ProductPage({
               </div>
             </div>
             <div className="flex items-start gap-2.5">
-              <MapPin size={13} className="text-[#2ECC71] mt-0.5 shrink-0" />
+              <Truck size={13} className="text-[#2ECC71] mt-0.5 shrink-0" />
               <div>
                 <p className="font-bold text-gray-800">Despacho a domicilio</p>
                 <p>Disponible en <strong>Placilla y Curauma</strong></p>
@@ -1822,7 +1822,7 @@ function CartPage({
               </div>
               <p>Av. Obispo Valdés Subercaseaux 533, Placilla</p>
               <div className="flex items-center gap-2 pt-1">
-                <MapPin size={12} className="text-[#2ECC71] shrink-0" />
+                <Truck size={12} className="text-[#2ECC71] shrink-0" />
                 <span className="font-black text-[#2ECC71] uppercase tracking-widest text-[11px]">Despacho</span>
               </div>
               <p>Solo en <span className="text-white font-semibold">Placilla y Curauma</span></p>
@@ -2309,7 +2309,9 @@ function CheckoutPage({
             </div>
 
             <div className="p-3 bg-gray-50 border-b border-gray-200 text-xs text-gray-500 flex items-start gap-2">
-              <Store size={12} className="text-[#2ECC71] mt-0.5 shrink-0" />
+              {form.deliveryMethod === "despacho"
+                ? <Truck size={12} className="text-[#2ECC71] mt-0.5 shrink-0" />
+                : <Store size={12} className="text-[#2ECC71] mt-0.5 shrink-0" />}
               {form.deliveryMethod === "despacho" ? (
                 <span>Despacho a domicilio — solo en <strong>Placilla y Curauma</strong>.</span>
               ) : (
@@ -2423,7 +2425,7 @@ function ConfirmationPage({ orderNum, order, navigate }: { orderNum: string; ord
           {order?.metodo_entrega === "despacho" ? (
             <>
               <div className="flex items-start gap-3">
-                <MapPin size={15} className="text-[#2ECC71] mt-0.5 shrink-0" />
+                <Truck size={15} className="text-[#2ECC71] mt-0.5 shrink-0" />
                 <div>
                   <p className="text-sm font-bold text-white">Despacho a domicilio</p>
                   <p className="text-xs text-gray-300 mt-0.5">{order.direccion_despacho}</p>
@@ -2947,7 +2949,7 @@ function OrderCard({ order, updateStatus }: { order: Pedido; updateStatus: (id: 
           <div className={`flex items-start gap-2 rounded-sm px-3 py-2 text-xs ${order.metodo_entrega === "despacho" ? "bg-orange-50 border border-orange-200" : "bg-[#f0fdf4] border border-[#2ECC71]/30"}`}>
             {order.metodo_entrega === "despacho" ? (
               <>
-                <MapPin size={12} className="text-orange-500 mt-0.5 shrink-0" />
+                <Truck size={12} className="text-orange-500 mt-0.5 shrink-0" />
                 <div>
                   <p className="font-black uppercase tracking-widest text-orange-600 text-[10px]">Despacho a domicilio</p>
                   <p className="text-gray-700 mt-0.5">{order.direccion_despacho ?? "—"}</p>
