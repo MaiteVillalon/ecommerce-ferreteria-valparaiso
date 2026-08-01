@@ -665,7 +665,7 @@ function Header({ navigate, cartCount, cliente, onLogout }: { navigate: Navigate
             ))}
           </div>
 
-          {/* user indicator */}
+          {/* user indicator / auth buttons */}
           {cliente ? (
             <div className="hidden md:flex items-center gap-2 px-3 py-1.5 text-[12px] text-gray-300">
               <button onClick={() => navigate("mi-cuenta")} className="flex items-center gap-2 hover:text-white transition-colors">
@@ -676,7 +676,22 @@ function Header({ navigate, cartCount, cliente, onLogout }: { navigate: Navigate
               </button>
               <button onClick={onLogout} className="text-gray-500 hover:text-white text-[10px] transition-colors">(salir)</button>
             </div>
-          ) : null}
+          ) : (
+            <div className="hidden md:flex items-center gap-1">
+              <button
+                onClick={() => navigate("auth")}
+                className="px-3 py-1.5 text-[12px] font-medium text-gray-300 hover:text-white rounded-full transition-colors whitespace-nowrap"
+              >
+                Iniciar sesión
+              </button>
+              <button
+                onClick={() => navigate("auth")}
+                className="px-3 py-1.5 text-[12px] font-bold bg-white text-[#1C1C1C] hover:bg-gray-100 rounded-full transition-colors whitespace-nowrap"
+              >
+                Crear cuenta
+              </button>
+            </div>
+          )}
 
           {/* cart CTA */}
           <button
@@ -714,6 +729,22 @@ function Header({ navigate, cartCount, cliente, onLogout }: { navigate: Navigate
               {label}
             </button>
           ))}
+          {!cliente && (
+            <div className="border-t border-gray-100 mt-2 pt-2 flex flex-col gap-1">
+              <button
+                onClick={() => { navigate("auth"); setMobileOpen(false); }}
+                className="text-left px-3 py-2.5 text-sm font-semibold text-[#1C1C1C] hover:bg-[#f5f5f5] rounded-xl transition-colors"
+              >
+                Iniciar sesión
+              </button>
+              <button
+                onClick={() => { navigate("auth"); setMobileOpen(false); }}
+                className="text-left px-3 py-2.5 text-sm font-bold text-[#2ECC71] hover:bg-[#f5f5f5] rounded-xl transition-colors"
+              >
+                Crear cuenta
+              </button>
+            </div>
+          )}
           <div className="border-t border-gray-100 mt-2 pt-2">
             <a href="tel:+56322214589" className="block px-3 py-2 text-xs text-gray-400 font-medium">
               +56 32 221 4589
@@ -763,6 +794,14 @@ function HomePage({ navigate, addToCart, products }: { navigate: NavigateFn; add
     <div>
       {/* Hero */}
       <HeroSlideshow onSearch={handleSearch} searchVal={searchVal} setSearchVal={setSearchVal} />
+
+      {/* Delivery zone notice */}
+      <div className="bg-[#1C1C1C] border-b border-[#2ECC71]/30 py-2 px-4">
+        <p className="text-center text-xs font-semibold text-gray-300 flex items-center justify-center gap-2">
+          <MapPin size={12} className="text-[#2ECC71] shrink-0" />
+          Despacho a domicilio disponible solo en <span className="text-white font-bold">Placilla y Curauma</span>
+        </p>
+      </div>
 
       {/* Category Hover Effect */}
       <section className="max-w-7xl mx-auto px-4 py-10">
@@ -1786,7 +1825,9 @@ function CheckoutPage({
   const [form, setForm] = useState({
     name: prefill?.nombre ?? "", email: prefill?.email ?? "", phone: prefill?.telefono ?? "",
     rut: "", timeSlot: "", payment: "webpay", docType: "boleta",
+    deliveryMethod: "retiro" as "retiro" | "despacho",
   });
+  const [deliveryAddress, setDeliveryAddress] = useState({ calle: "", numero: "", referencia: "" });
   const [invoiceData, setInvoiceData] = useState({
     rut: "", razonSocial: "", giro: "", direccion: "", comuna: "",
   });
@@ -1821,6 +1862,10 @@ function CheckoutPage({
     if (!form.email.includes("@")) e.email = "Email inválido";
     if (form.phone.replace(/\D/g, "").length < 9) e.phone = "Teléfono inválido";
     if (!form.rut.trim()) e.rut = "Ingresa tu RUT";
+    if (form.deliveryMethod === "despacho") {
+      if (!deliveryAddress.calle.trim()) e.delivCalle = "Ingresa la calle";
+      if (!deliveryAddress.numero.trim()) e.delivNumero = "Ingresa el número";
+    }
     if (form.docType === "factura") {
       if (!invoiceData.rut.trim()) e.invoiceRut = "Ingresa el RUT de la empresa";
       else if (!validateRut(invoiceData.rut)) e.invoiceRut = "RUT inválido, verifica el dígito verificador";
@@ -1847,6 +1892,10 @@ function CheckoutPage({
         total: cartTotal,
         metodo_pago: form.payment,
         tipo_documento: form.docType as TipoDocumento,
+        metodo_entrega: form.deliveryMethod,
+        ...(form.deliveryMethod === "despacho" && {
+          direccion_despacho: `${deliveryAddress.calle} ${deliveryAddress.numero}${deliveryAddress.referencia ? `, ${deliveryAddress.referencia}` : ""}`,
+        }),
         ...(form.docType === "factura" && {
           factura_rut: invoiceData.rut,
           factura_razon_social: invoiceData.razonSocial,
@@ -1929,8 +1978,96 @@ function CheckoutPage({
             </div>
           </div>
 
-          {/* Pickup time */}
-          
+          {/* Delivery method */}
+          <div className="border border-gray-200 bg-white">
+            <div className="px-5 py-3 border-b border-gray-200 bg-gray-50">
+              <h2
+                className="font-black uppercase tracking-tight text-base"
+                style={{ fontFamily: "var(--font-display)" }}
+              >
+                Método de entrega
+              </h2>
+            </div>
+            <div className="p-5 space-y-2.5">
+              {[
+                { id: "retiro", label: "Retiro en tienda", sub: "Av. Obispo Valdés Subercaseaux 533, Placilla, Valparaíso" },
+                { id: "despacho", label: "Despacho a domicilio", sub: "Solo disponible en Placilla y Curauma" },
+              ].map((opt) => (
+                <label
+                  key={opt.id}
+                  className={`flex items-start gap-3 p-3.5 border cursor-pointer transition-colors ${
+                    form.deliveryMethod === opt.id
+                      ? "border-[#2ECC71] bg-orange-50"
+                      : "border-gray-200 hover:border-gray-300"
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="deliveryMethod"
+                    value={opt.id}
+                    checked={form.deliveryMethod === opt.id}
+                    onChange={() => setForm((f) => ({ ...f, deliveryMethod: opt.id as "retiro" | "despacho" }))}
+                    className="mt-0.5 accent-[#2ECC71]"
+                  />
+                  <div>
+                    <p className="font-bold text-sm text-gray-900">{opt.label}</p>
+                    <p className="text-xs text-gray-500 mt-0.5">{opt.sub}</p>
+                  </div>
+                </label>
+              ))}
+
+              {/* Delivery address fields */}
+              <AnimatePresence>
+                {form.deliveryMethod === "despacho" && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    transition={{ duration: 0.3, ease: "easeInOut" }}
+                    className="overflow-hidden"
+                  >
+                    <div className="pt-2 space-y-3 border-t border-gray-200 mt-1">
+                      <p className="text-xs text-gray-500 font-semibold uppercase tracking-wide pt-1">Dirección de despacho</p>
+                      <div className="grid grid-cols-3 gap-3">
+                        <div className="col-span-2">
+                          <label className="block text-xs font-semibold text-gray-700 mb-1">Calle *</label>
+                          <input
+                            type="text"
+                            placeholder="Av. Principal"
+                            value={deliveryAddress.calle}
+                            onChange={(e) => setDeliveryAddress((d) => ({ ...d, calle: e.target.value }))}
+                            className={`w-full border ${errors.delivCalle ? "border-red-400" : "border-gray-300"} rounded-sm px-3 py-2.5 text-sm focus:border-[#2ECC71] outline-none transition-colors bg-white`}
+                          />
+                          {errors.delivCalle && <p className="text-red-500 text-xs mt-1">{errors.delivCalle}</p>}
+                        </div>
+                        <div>
+                          <label className="block text-xs font-semibold text-gray-700 mb-1">Número *</label>
+                          <input
+                            type="text"
+                            placeholder="123"
+                            value={deliveryAddress.numero}
+                            onChange={(e) => setDeliveryAddress((d) => ({ ...d, numero: e.target.value }))}
+                            className={`w-full border ${errors.delivNumero ? "border-red-400" : "border-gray-300"} rounded-sm px-3 py-2.5 text-sm focus:border-[#2ECC71] outline-none transition-colors bg-white`}
+                          />
+                          {errors.delivNumero && <p className="text-red-500 text-xs mt-1">{errors.delivNumero}</p>}
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-xs font-semibold text-gray-700 mb-1">Referencia (opcional)</label>
+                        <input
+                          type="text"
+                          placeholder="Casa azul, portón negro…"
+                          value={deliveryAddress.referencia}
+                          onChange={(e) => setDeliveryAddress((d) => ({ ...d, referencia: e.target.value }))}
+                          className="w-full border border-gray-300 rounded-sm px-3 py-2.5 text-sm focus:border-[#2ECC71] outline-none transition-colors bg-white"
+                        />
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          </div>
 
           {/* Payment */}
           <div className="border border-gray-200 bg-white">
@@ -2144,7 +2281,11 @@ function CheckoutPage({
 
             <div className="p-3 bg-gray-50 border-b border-gray-200 text-xs text-gray-500 flex items-start gap-2">
               <Store size={12} className="text-[#2ECC71] mt-0.5 shrink-0" />
-              <span>Sin despacho a domicilio. Solo retiro en Av. Obispo Valdés Subercaseaux 533.</span>
+              {form.deliveryMethod === "despacho" ? (
+                <span>Despacho a domicilio — solo en <strong>Placilla y Curauma</strong>.</span>
+              ) : (
+                <span>Retiro en tienda — Av. Obispo Valdés Subercaseaux 533, Placilla.</span>
+              )}
             </div>
 
             {submitError && (
