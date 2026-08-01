@@ -276,44 +276,138 @@ const BRAND_LOGOS: Record<string, React.ReactNode> = {
   ),
 };
 
-const BRANDS = [
-  { id: 1,  name: "Bosch",            logo: "https://logo.clearbit.com/bosch.com" },
-  { id: 2,  name: "Makita",           logo: "https://logo.clearbit.com/makita.com" },
-  { id: 3,  name: "Stanley",          logo: "https://logo.clearbit.com/stanleytools.com" },
-  { id: 4,  name: "3M",               logo: "https://logo.clearbit.com/3m.com" },
-  { id: 5,  name: "Sherwin-Williams", logo: "https://logo.clearbit.com/sherwin-williams.com" },
-  { id: 6,  name: "Melón",            logo: "https://logo.clearbit.com/melon.cl" },
-  { id: 7,  name: "Hilti",            logo: "https://logo.clearbit.com/hilti.com" },
-  { id: 8,  name: "Sika",             logo: "https://logo.clearbit.com/sika.com" },
-  { id: 9,  name: "Tigre",            logo: "https://logo.clearbit.com/tigre.com.br" },
-  { id: 10, name: "Madeco",           logo: "https://logo.clearbit.com/madeco.cl" },
+const BRANDS: { id: number; name: string; logo: React.ReactNode }[] = [
+  {
+    id: 1, name: "Bosch",
+    logo: (
+      <svg viewBox="0 0 120 40" width="100" height="34">
+        <circle cx="20" cy="20" r="19" fill="#E2001A"/>
+        <text x="20" y="25" textAnchor="middle" fill="white" fontSize="10" fontFamily="Arial,sans-serif" fontWeight="bold">bosch</text>
+        <text x="72" y="26" textAnchor="middle" fill="#E2001A" fontSize="20" fontFamily="Arial,sans-serif" fontWeight="900" letterSpacing="1">BOSCH</text>
+      </svg>
+    ),
+  },
+  {
+    id: 2, name: "Makita",
+    logo: (
+      <svg viewBox="0 0 130 36" width="110" height="30">
+        <rect x="0" y="6" width="130" height="24" rx="3" fill="#00AEEF"/>
+        <text x="65" y="23" textAnchor="middle" fill="white" fontSize="14" fontFamily="Arial,sans-serif" fontWeight="bold" letterSpacing="1">makita</text>
+      </svg>
+    ),
+  },
+  {
+    id: 3, name: "Stanley",
+    logo: (
+      <svg viewBox="0 0 130 40" width="110" height="34">
+        <rect width="130" height="40" rx="4" fill="#FFD200"/>
+        <text x="65" y="27" textAnchor="middle" fill="#111111" fontSize="16" fontFamily="Arial,sans-serif" fontWeight="900" letterSpacing="2">STANLEY</text>
+      </svg>
+    ),
+  },
+  {
+    id: 4, name: "3M",
+    logo: (
+      <svg viewBox="0 0 80 40" width="68" height="34">
+        <text x="40" y="34" textAnchor="middle" fill="#E2001A" fontSize="40" fontFamily="Arial,sans-serif" fontWeight="900">3M</text>
+      </svg>
+    ),
+  },
+  {
+    id: 5, name: "Sherwin-Williams",
+    logo: (
+      <svg viewBox="0 0 160 36" width="130" height="30">
+        <rect width="160" height="36" rx="3" fill="#003087"/>
+        <text x="80" y="15" textAnchor="middle" fill="white" fontSize="9" fontFamily="Arial,sans-serif" fontWeight="bold" letterSpacing="0.5">SHERWIN-WILLIAMS</text>
+        <text x="80" y="27" textAnchor="middle" fill="#E2001A" fontSize="8" fontFamily="Arial,sans-serif" fontWeight="bold" letterSpacing="1">PAINT · COATINGS</text>
+      </svg>
+    ),
+  },
+  {
+    id: 6, name: "Melón",
+    logo: (
+      <svg viewBox="0 0 110 40" width="90" height="34">
+        <text x="55" y="32" textAnchor="middle" fill="#E8762B" fontSize="36" fontFamily="Georgia,serif" fontWeight="bold" fontStyle="italic">Melón</text>
+      </svg>
+    ),
+  },
+  {
+    id: 7, name: "Hilti",
+    logo: (
+      <svg viewBox="0 0 110 40" width="90" height="34">
+        <rect width="110" height="40" rx="3" fill="#E30512"/>
+        <text x="55" y="28" textAnchor="middle" fill="white" fontSize="22" fontFamily="Arial,sans-serif" fontWeight="900" letterSpacing="3">HILTI</text>
+      </svg>
+    ),
+  },
+  {
+    id: 8, name: "Sika",
+    logo: (
+      <svg viewBox="0 0 90 40" width="76" height="34">
+        <rect width="90" height="40" rx="20" fill="#C1002B"/>
+        <text x="45" y="27" textAnchor="middle" fill="white" fontSize="20" fontFamily="Arial,sans-serif" fontWeight="bold" fontStyle="italic">Sika</text>
+      </svg>
+    ),
+  },
+  {
+    id: 9, name: "Tigre",
+    logo: (
+      <svg viewBox="0 0 100 40" width="84" height="34">
+        <text x="50" y="30" textAnchor="middle" fill="#F97316" fontSize="28" fontFamily="Arial,sans-serif" fontWeight="900" letterSpacing="2">TIGRE</text>
+      </svg>
+    ),
+  },
+  {
+    id: 10, name: "Madeco",
+    logo: (
+      <svg viewBox="0 0 130 40" width="110" height="34">
+        <text x="65" y="30" textAnchor="middle" fill="#1E40AF" fontSize="26" fontFamily="Arial,sans-serif" fontWeight="900" letterSpacing="2">MADECO</text>
+      </svg>
+    ),
+  },
 ];
 
 // ─── BRAND LOGO GRID ──────────────────────────────────────────────────────────
+const FLIP_DELAYS = [0, -1.2, -2.4, -3.6, -0.8, -2.0, -3.2, -4.4, -1.6, -4.0];
+
 function BrandFlipGrid() {
   return (
-    <div className="grid grid-cols-3 sm:grid-cols-5 gap-x-8 gap-y-8 items-center">
-      {BRANDS.map((brand) => (
-        <div
-          key={brand.id}
-          className="flex items-center justify-center h-12 group"
-        >
-          <img
-            src={brand.logo}
-            alt={brand.name}
-            className="max-h-10 max-w-[100px] w-auto object-contain grayscale opacity-60 transition-all duration-300 group-hover:grayscale-0 group-hover:opacity-100"
-            onError={(e) => {
-              const target = e.currentTarget;
-              target.style.display = "none";
-              const span = document.createElement("span");
-              span.textContent = brand.name;
-              span.className = "font-bold text-sm text-gray-400";
-              target.parentElement?.appendChild(span);
-            }}
-          />
-        </div>
-      ))}
-    </div>
+    <>
+      <style>{`
+        @keyframes brand-flip {
+          0%,42%  { transform: rotateY(0deg); }
+          50%,88% { transform: rotateY(180deg); }
+          96%,100%{ transform: rotateY(360deg); }
+        }
+        .brand-flip-inner {
+          position:relative; width:100%; height:100%;
+          transform-style: preserve-3d;
+          animation: brand-flip 6s ease-in-out infinite;
+        }
+        .brand-face {
+          position:absolute; inset:0; backface-visibility:hidden;
+          display:flex; align-items:center; justify-content:center;
+        }
+        .brand-face-blur { transform: rotateY(180deg); filter: blur(5px); opacity:0.35; }
+        @media (prefers-reduced-motion: reduce) {
+          .brand-flip-inner { animation:none; transform:rotateY(0deg); }
+        }
+      `}</style>
+      <div className="grid grid-cols-3 sm:grid-cols-5 gap-x-6 gap-y-8">
+        {BRANDS.map((brand, i) => (
+          <div
+            key={brand.id}
+            className="flex items-center justify-center"
+            style={{ perspective: "700px", height: "44px" }}
+          >
+            <div className="brand-flip-inner" style={{ animationDelay: `${FLIP_DELAYS[i]}s` }}>
+              <div className="brand-face">{brand.logo}</div>
+              <div className="brand-face brand-face-blur">{brand.logo}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </>
   );
 }
 
