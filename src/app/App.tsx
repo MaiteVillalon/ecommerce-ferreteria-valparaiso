@@ -539,7 +539,7 @@ function ProductCard({
           : "bg-white border-gray-200 hover:border-[#2ECC71]"
       }`}
     >
-      <div className={`relative overflow-hidden ${dark ? "aspect-[3/2]" : "aspect-[4/3]"} ${dark ? "bg-[#1A1A1A]" : "bg-gray-100"}`}>
+      <div className={`relative overflow-hidden ${dark ? "aspect-[2/1]" : "aspect-[4/3]"} ${dark ? "bg-[#1A1A1A]" : "bg-gray-100"}`}>
         <img
           src={unsplash(p.img, 600, 450)}
           alt={p.name}
