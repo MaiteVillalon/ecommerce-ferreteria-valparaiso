@@ -46,7 +46,7 @@ export function HeroSlideshow({ onSearch, searchVal, setSearchVal }: HeroSlidesh
   return (
     <section
       className="relative overflow-hidden bg-[#1C1C1C] flex flex-col items-center justify-center"
-      style={{ minHeight: "clamp(380px, 75vh, 75vh)" }}
+      style={{ minHeight: "clamp(420px, 85vh, 85vh)" }}
     >
       {/* ── Slideshow de fondo ── */}
       {reduced ? (
@@ -55,6 +55,7 @@ export function HeroSlideshow({ onSearch, searchVal, setSearchVal }: HeroSlidesh
           alt=""
           aria-hidden
           className="absolute inset-0 w-full h-full object-cover opacity-65"
+          style={{ objectPosition: "50% 35%" }}
         />
       ) : (
         <AnimatePresence>
@@ -71,6 +72,7 @@ export function HeroSlideshow({ onSearch, searchVal, setSearchVal }: HeroSlidesh
               alt=""
               aria-hidden
               className="absolute inset-0 w-full h-full object-cover opacity-65"
+              style={{ objectPosition: "50% 35%" }}
               initial={{ scale: 1 }}
               animate={{ scale: 1.07 }}
               transition={{ duration: SLIDE_DURATION / 1000 + 1.2, ease: "linear" }}
