@@ -88,7 +88,7 @@ export function HeroSlideshow({ onSearch, searchVal, setSearchVal }: HeroSlidesh
       <div className="relative z-10 flex flex-col items-center text-center px-4 py-20 max-w-3xl mx-auto">
 
         {/* Badge */}
-        <div className="flex items-center gap-2 bg-[#2ECC71] text-white text-xs font-black px-3 py-1.5 mb-5 uppercase tracking-widest rounded-md">
+        <div className="flex items-center gap-2 bg-[#2ECC71] text-white text-xs font-black px-3 py-1.5 mb-5 uppercase tracking-widest rounded-lg">
           Compra online y retira en tienda
         </div>
 
@@ -130,7 +130,7 @@ export function HeroSlideshow({ onSearch, searchVal, setSearchVal }: HeroSlidesh
 
         {/* Barra de búsqueda */}
         {reduced ? (
-          <form onSubmit={onSearch} className="flex w-full max-w-xl shadow-2xl rounded-sm overflow-hidden">
+          <form onSubmit={onSearch} className="flex w-full max-w-xl shadow-2xl rounded-md overflow-hidden">
             <input
               value={searchVal}
               onChange={(e) => setSearchVal(e.target.value)}
@@ -144,7 +144,7 @@ export function HeroSlideshow({ onSearch, searchVal, setSearchVal }: HeroSlidesh
         ) : (
           <motion.form
             onSubmit={onSearch}
-            className="flex w-full max-w-xl shadow-2xl rounded-sm overflow-hidden"
+            className="flex w-full max-w-xl shadow-2xl rounded-md overflow-hidden"
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.55, delay: 0.55 }}
