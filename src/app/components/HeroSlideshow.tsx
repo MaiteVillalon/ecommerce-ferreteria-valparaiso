@@ -46,7 +46,7 @@ export function HeroSlideshow({ onSearch, searchVal, setSearchVal }: HeroSlidesh
   return (
     <section
       className="relative overflow-hidden bg-[#1C1C1C] flex flex-col items-center justify-center"
-      style={{ minHeight: "clamp(320px, 60vh, 60vh)" }}
+      style={{ minHeight: "clamp(380px, 75vh, 75vh)" }}
     >
       {/* ── Slideshow de fondo ── */}
       {reduced ? (
@@ -89,22 +89,6 @@ export function HeroSlideshow({ onSearch, searchVal, setSearchVal }: HeroSlidesh
         <div className="flex items-center gap-2 bg-[#2ECC71] text-white text-xs font-black px-3 py-1.5 mb-5 uppercase tracking-widest rounded-md">
           Compra online y retira en tienda
         </div>
-
-        {/* Eyebrow */}
-        {reduced ? (
-          <p className="text-[#2ECC71] text-xs font-black uppercase tracking-widest mb-4">
-            Ferretería familiar desde siempre
-          </p>
-        ) : (
-          <motion.p
-            className="text-[#2ECC71] text-xs font-black uppercase tracking-widest mb-4"
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.1 }}
-          >
-            Ferretería familiar desde siempre
-          </motion.p>
-        )}
 
         {/* Título */}
         {reduced ? (
