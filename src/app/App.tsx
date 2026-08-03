@@ -2625,8 +2625,8 @@ function NosotrosPage({ navigate }: { navigate: NavigateFn }) {
                 </div>
               ) : (
                 <img
-                  src="/images/nosotros/familia.jpg"
-                  alt="Familia Palma Díaz — Ferretería La Nonna"
+                  src="/images/nosotros/local.jpg"
+                  alt="Local de Ferretería La Nonna"
                   className="w-full h-full object-cover"
                   onError={() => setImgError(true)}
                 />
