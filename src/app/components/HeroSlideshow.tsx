@@ -1,14 +1,12 @@
 import { useState, useEffect, useRef } from "react";
 import { AnimatePresence, motion } from "motion/react";
 
-// Cuando tengas las fotos reales, reemplaza estas URLs por las rutas locales:
-// "/images/hero/foto-1.jpg", "/images/hero/foto-2.jpg", etc.
 const HERO_IMAGES = [
-  "https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=1600&h=900&fit=crop&auto=format",
-  "https://images.unsplash.com/photo-1572981779307-38b8cabb2407?w=1600&h=900&fit=crop&auto=format",
-  "https://images.unsplash.com/photo-1585676623595-e1781bf6f0e5?w=1600&h=900&fit=crop&auto=format",
-  "https://images.unsplash.com/photo-1621905251918-48416bd8575a?w=1600&h=900&fit=crop&auto=format",
-  "https://images.unsplash.com/photo-1530124566582-a618bc2615dc?w=1600&h=900&fit=crop&auto=format",
+  "/images/hero/foto-1.jpg",
+  "/images/hero/foto-2.jpg",
+  "/images/hero/foto-3.jpg",
+  "/images/hero/foto-4.jpg",
+  "/images/hero/foto-5.jpg",
 ];
 
 const SLIDE_DURATION = 5000; // ms por foto
