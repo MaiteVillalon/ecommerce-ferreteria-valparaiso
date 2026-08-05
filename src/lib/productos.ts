@@ -31,14 +31,26 @@ export async function listarCategorias(): Promise<Categoria[]> {
   return data ?? [];
 }
 
+const FETCH_BATCH_SIZE = 1000;
+
 export async function listarProductosPublicos(): Promise<Producto[]> {
-  const { data, error } = await supabase
-    .from("productos")
-    .select(PRODUCTO_PUBLICO_COLUMNAS)
-    .eq("activo", true)
-    .order("nombre");
-  if (error) throw new Error(error.message);
-  return (data ?? []) as unknown as Producto[];
+  const productos: Producto[] = [];
+  let from = 0;
+
+  while (true) {
+    const { data, error } = await supabase
+      .from("productos")
+      .select(PRODUCTO_PUBLICO_COLUMNAS)
+      .eq("activo", true)
+      .order("nombre")
+      .range(from, from + FETCH_BATCH_SIZE - 1);
+    if (error) throw new Error(error.message);
+    productos.push(...((data ?? []) as unknown as Producto[]));
+    if (!data || data.length < FETCH_BATCH_SIZE) break;
+    from += FETCH_BATCH_SIZE;
+  }
+
+  return productos;
 }
 
 export interface ListarProductosAdminInput {
