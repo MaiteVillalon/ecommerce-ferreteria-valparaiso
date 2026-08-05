@@ -5,10 +5,11 @@ import { Toaster } from "sonner";
 import {
   ShoppingCart, Search, MapPin, Clock, Phone, X, Check,
   ChevronDown, ChevronUp, Store, ArrowLeft, ChevronRight,
-  Package, Menu, Filter, Zap, Wrench, Plug, Droplets, Leaf,
-  ShieldCheck, Paintbrush, ScanBarcode, Truck
+  Package, Menu, Filter, Zap, Wrench, Droplets,
+  Paintbrush, ScanBarcode, Truck, Building2,
 } from "lucide-react";
 import { ImageWithFallback } from "@/app/components/figma/ImageWithFallback";
+import { ProductImage } from "@/app/components/ProductImage";
 import { HeroSlideshow } from "@/app/components/HeroSlideshow";
 import { WorldMapSparkle } from "@/app/components/WorldMapSparkle";
 import storeFront from "@/imports/Captura_de_pantalla_2026-07-26_010939.png";
@@ -20,19 +21,16 @@ import {
   crearPedido, listarTodosPedidos, actualizarEstadoPedido,
   type Pedido, type EstadoPedido, type TipoDocumento,
 } from "@/lib/pedidos";
+import {
+  listarCategorias, listarProductosPublicos, agruparPorMedida,
+  type Categoria, type Producto, type GrupoProducto,
+} from "@/lib/productos";
 import { EstadoBadge } from "@/app/components/EstadoBadge";
 import { MiCuentaPage } from "@/app/pages/cuenta/MiCuentaPage";
 import { PedidoDetallePage } from "@/app/pages/cuenta/PedidoDetallePage";
 
 // ─── TYPES ──────────────────────────────────────────────────────────────────
-interface Spec { key: string; value: string }
-interface ProductVariants { type: "color" | "size"; options: string[] }
-export interface Product {
-  id: number; sku: string; name: string; brand: string; category: string;
-  price: number; originalPrice?: number; available: boolean; img: string;
-  description: string; specs: Spec[]; badge?: string; isOffer?: boolean;
-  variants?: ProductVariants;
-}
+export type Product = Producto;
 export interface CartItem extends Product { qty: number }
 interface ContactMessage {
   id: string;
@@ -56,161 +54,17 @@ const PAGE_PATHS: Record<Page, string> = {
 
 // ─── HELPERS ────────────────────────────────────────────────────────────────
 const fmt = (n: number) => `$${n.toLocaleString("es-CL")}`;
-const unsplash = (id: string, w = 800, h = 600) =>
-  `https://images.unsplash.com/${id}?w=${w}&h=${h}&fit=crop&auto=format`;
-
-// ─── DATA ───────────────────────────────────────────────────────────────────
-const CATEGORIES = [
-  { id: "electric", name: "Herramientas Eléctricas", img: "photo-1518709414768-a88981a4515d" },
-  { id: "manual", name: "Herramientas Manuales", img: "photo-1572981779307-38b8cabb2407" },
-  { id: "fixings", name: "Fijaciones y Tornillería", img: "photo-1613945831677-383c19ad7721" },
-  { id: "paint", name: "Pinturas", img: "photo-1585676737728-432f58d5fdba" },
-  { id: "electrical", name: "Electricidad", img: "photo-1544724569-5f546fd6f2b5" },
-  { id: "plumbing", name: "Gasfitería", img: "photo-1742134131017-44d377a611b1" },
-  { id: "garden", name: "Jardín", img: "photo-1416879595882-3373a0480b5b" },
-  { id: "safety", name: "Seguridad", img: "photo-1567954970774-58d6aa6c50dc" },
-];
-
-const PRODUCTS: Product[] = [
-  {
-    id: 1, sku: "BSH-GSB550", name: "Taladro Percutor Bosch GSB 550W",
-    brand: "Bosch", category: "electric", price: 49990, available: true,
-    img: "photo-1504148455328-c376907d081c",
-    description: "Taladro percutor de 550W para mampostería, hormigón y madera. Incluye mandril 13mm, mango auxiliar y maletín de transporte. Ideal para faenas en construcción y remodelación.",
-    specs: [
-      { key: "Potencia", value: "550W" }, { key: "Velocidad máx.", value: "2.800 rpm" },
-      { key: "Cap. hormigón", value: "13 mm" }, { key: "Cap. madera", value: "25 mm" },
-      { key: "Peso", value: "1.7 kg" }, { key: "Voltaje", value: "220V / 50Hz" },
-    ],
-    badge: "Más vendido",
-  },
-  {
-    id: 2, sku: "BSH-DC115-10", name: "Disco Corte Metal Bosch 115mm (Pack ×10)",
-    brand: "Bosch", category: "electric", price: 8490, originalPrice: 10990, available: true,
-    img: "photo-1685713011172-3ba27ff25e22",
-    description: "Pack de 10 discos de corte para amoladora angular 4½\". Apto para acero y metales ferrosos. Corte limpio y preciso.",
-    specs: [
-      { key: "Diámetro", value: "115 mm" }, { key: "Espesor", value: "1.0 mm" },
-      { key: "Velocidad máx.", value: "13.300 rpm" }, { key: "Árbol", value: "22.23 mm" },
-      { key: "Material", value: "Óxido de aluminio" }, { key: "Uso", value: "Metales ferrosos" },
-    ],
-    badge: "Oferta", isOffer: true,
-  },
-  {
-    id: 3, sku: "STL-AP8x1-100", name: "Tornillos Autoperforantes 8×1\" (Caja 100u)",
-    brand: "Stanley", category: "fixings", price: 3290, available: true,
-    img: "photo-1568393691622-c7ba131d63b4",
-    description: "Caja de 100 tornillos autoperforantes punta de broca, cabeza hexagonal. Para fijación en estructura metálica liviana y plancha de zinc.",
-    specs: [
-      { key: "Medida", value: "8×1\" (4.2×25mm)" }, { key: "Cabeza", value: "Hexagonal" },
-      { key: "Material", value: "Acero templado" }, { key: "Acabado", value: "Fosfatado negro" },
-      { key: "Uso", value: "Estructura metálica liviana" },
-    ],
-  },
-  {
-    id: 4, sku: "MEL-CEM-25", name: "Cemento Melón Portland Gris 25 kg",
-    brand: "Melón", category: "fixings", price: 7990, available: true,
-    img: "photo-1581094794329-c8112a89af12",
-    description: "Cemento portland puzolánico CPP 35 de uso general. Ideal para confección de hormigón, morteros, revoques y fundaciones.",
-    specs: [
-      { key: "Peso", value: "25 kg" }, { key: "Tipo", value: "Portland Puzolánico" },
-      { key: "Resistencia", value: "CPP 35" }, { key: "Uso", value: "Obras generales" },
-      { key: "Norma", value: "NCh 148" },
-    ],
-  },
-  {
-    id: 5, sku: "MKT-9553NB", name: "Amoladora Angular Makita 9553NB 900W",
-    brand: "Makita", category: "electric", price: 59990, originalPrice: 69990, available: true,
-    img: "photo-1564182998523-6923112e7d6b",
-    description: "Amoladora angular 900W con disco 115mm. Motor potente con engranajes helicoidales. Protección contra sobrecarga.",
-    specs: [
-      { key: "Potencia", value: "900W" }, { key: "Disco", value: "115 mm" },
-      { key: "Velocidad", value: "11.000 rpm" }, { key: "Peso", value: "1.9 kg" },
-      { key: "Voltaje", value: "220V" },
-    ],
-    badge: "Oferta", isOffer: true,
-  },
-  {
-    id: 6, sku: "SW-LAT4L", name: "Pintura Látex Sherwin-Williams 4L",
-    brand: "Sherwin-Williams", category: "paint", price: 24990, available: true,
-    img: "photo-1562259929-b4e1fd3aef09",
-    description: "Pintura látex interior/exterior de alta cubrición. Secado rápido, lavable, resistente a manchas y hongos.",
-    specs: [
-      { key: "Contenido", value: "4 litros" }, { key: "Rendimiento", value: "10-12 m²/L" },
-      { key: "Secado al tacto", value: "1 hora" }, { key: "Secado total", value: "4 horas" },
-      { key: "Acabado", value: "Mate" }, { key: "Uso", value: "Interior y exterior" },
-    ],
-    variants: { type: "color", options: ["Blanco Ártico", "Crema", "Gris Paloma", "Beige Natural"] },
-  },
-  {
-    id: 7, sku: "3M-GL-BOV", name: "Guante de Cuero 3M Tipo A",
-    brand: "3M", category: "safety", price: 4590, available: true,
-    img: "photo-1585771724684-38269d6639fd",
-    description: "Guante cuero flor de vacuno reforzado en palma y dedos. Protección mecánica tipo A según EN 388. Para trabajos de construcción y soldadura.",
-    specs: [
-      { key: "Material", value: "Cuero flor vacuno" }, { key: "Protección", value: "Mecánica Tipo A" },
-      { key: "Norma", value: "EN 388" }, { key: "Uso", value: "Construcción, soldadura" },
-    ],
-    variants: { type: "size", options: ["S", "M", "L", "XL"] },
-  },
-  {
-    id: 8, sku: "DML-EXT10M", name: "Extensión Eléctrica 10m 3×1.5mm²",
-    brand: "Dimelec", category: "electrical", price: 12990, available: true,
-    img: "photo-1621905251189-08b45249ff78",
-    description: "Extensión con 3 enchufes hembra. Conductor cobre 3×1.5mm² hasta 1.500W. Cable reforzado con protección UV.",
-    specs: [
-      { key: "Largo", value: "10 metros" }, { key: "Sección", value: "3×1.5 mm²" },
-      { key: "Potencia máx.", value: "1.500W" }, { key: "Enchufes", value: "3 salidas hembra" },
-      { key: "Norma", value: "IEC 60884" },
-    ],
-  },
-  {
-    id: 9, sku: "STL-STL14", name: "Llave Stilson Stanley 14\" Cromada",
-    brand: "Stanley", category: "manual", price: 15490, available: true,
-    img: "photo-1572981779307-38b8cabb2407",
-    description: "Llave stilson 14\" con mandíbulas de acero cromado forjado. Para tubos hasta 1½\". Agarre antideslizante.",
-    specs: [
-      { key: "Tamaño", value: "14\" (355mm)" }, { key: "Apertura máx.", value: "38 mm" },
-      { key: "Material", value: "Acero al carbono forjado" }, { key: "Acabado", value: "Cromado pulido" },
-      { key: "Uso", value: "Tubos hasta 1½\"" },
-    ],
-  },
-  {
-    id: 10, sku: "MDC-VUL25-100", name: "Cable Vulcanita 2.5mm² Rollo 100m",
-    brand: "Madeco", category: "electrical", price: 89990, available: true,
-    img: "photo-1558618047-f2e04cd39a85",
-    description: "Rollo 100m cable vulcanita unipolar 2.5mm² para instalaciones domiciliarias. Conductor cobre recocido.",
-    specs: [
-      { key: "Sección", value: "2.5 mm²" }, { key: "Largo", value: "100 metros" },
-      { key: "Tensión", value: "450/750V" }, { key: "Conductor", value: "Cobre recocido" },
-      { key: "Norma", value: "IEC 60227" },
-    ],
-    badge: "Stock limitado",
-  },
-  {
-    id: 11, sku: "TGR-PVC4-3M", name: "Tubo PVC Sanitario 4\" × 3m",
-    brand: "Tigre", category: "plumbing", price: 8990, available: true,
-    img: "photo-1504328345606-18bbc8c9d7d1",
-    description: "Tubo de PVC sanitario 4\" para alcantarillado domiciliario. Alta resistencia química y mecánica.",
-    specs: [
-      { key: "Diámetro", value: "4\" (110mm)" }, { key: "Largo", value: "3 metros" },
-      { key: "Espesor", value: "3.2 mm" }, { key: "Presión", value: "0.4 MPa" },
-      { key: "Norma", value: "NCh 399" },
-    ],
-  },
-  {
-    id: 12, sku: "3M-H700", name: "Casco Seguridad 3M H-700",
-    brand: "3M", category: "safety", price: 8490, available: true,
-    img: "photo-1582719508461-905c673771fd",
-    description: "Casco de seguridad clase E con ajuste por ruleta. Resistente a alto voltaje eléctrico. Liviano y ventilado.",
-    specs: [
-      { key: "Clase", value: "E (eléctrico)" }, { key: "Ajuste", value: "Ruleta posterior" },
-      { key: "Material", value: "HDPE" }, { key: "Peso", value: "350 g" },
-      { key: "Norma", value: "ANSI Z89.1" },
-    ],
-    variants: { type: "color", options: ["Amarillo", "Blanco", "Naranja", "Azul"] },
-  },
-];
+// Ícono decorativo por categoría real (la tabla `categorias` no trae ícono/foto).
+const CATEGORIA_ICONOS: Record<string, React.ReactNode> = {
+  "Herramientas": <Wrench size={22} />,
+  "Plomería": <Droplets size={22} />,
+  "Tornillos y Fijaciones": <ScanBarcode size={22} />,
+  "Electricidad": <Zap size={22} />,
+  "Pintura y Terminaciones": <Paintbrush size={22} />,
+  "Construcción y Materiales": <Building2 size={22} />,
+  "Varios": <Package size={22} />,
+};
+const categoriaIcono = (nombre: string) => CATEGORIA_ICONOS[nombre] ?? <Package size={22} />;
 
 const BRAND_LOGOS: Record<string, React.ReactNode> = {
   Bosch: (
@@ -454,23 +308,12 @@ function FlipWords() {
 }
 
 // ─── CATEGORY HOVER EFFECT ───────────────────────────────────────────────────
-const CAT_META: Record<string, { icon: React.ReactNode; desc: string }> = {
-  electric:   { icon: <Zap size={22} />,         desc: "Taladros, amoladoras, sierras y más" },
-  manual:     { icon: <Wrench size={22} />,       desc: "Martillos, llaves, destornilladores" },
-  fixings:    { icon: <ScanBarcode size={22} />,  desc: "Tornillos, pernos, anclajes y tarugos" },
-  paint:      { icon: <Paintbrush size={22} />,   desc: "Pinturas, barnices, rodillos y brochas" },
-  electrical: { icon: <Plug size={22} />,         desc: "Cables, enchufes, protecciones y llaves" },
-  plumbing:   { icon: <Droplets size={22} />,     desc: "Cañerías, llaves de paso y accesorios" },
-  garden:     { icon: <Leaf size={22} />,         desc: "Mangueras, herramientas y riego" },
-  safety:     { icon: <ShieldCheck size={22} />,  desc: "EPP, cascos, guantes y señalética" },
-};
-
-function CategoryHoverEffect({ navigate }: { navigate: NavigateFn }) {
+function CategoryHoverEffect({ navigate, categorias }: { navigate: NavigateFn; categorias: Categoria[] }) {
   const [hovered, setHovered] = useState<string | null>(null);
 
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-2.5">
-      {CATEGORIES.map((cat) => (
+      {categorias.map((cat) => (
         <div
           key={cat.id}
           className="relative group"
@@ -479,14 +322,8 @@ function CategoryHoverEffect({ navigate }: { navigate: NavigateFn }) {
         >
           <button
             onClick={() => navigate("catalog")}
-            className="relative w-full overflow-hidden bg-gray-800 aspect-square"
+            className="relative w-full overflow-hidden bg-[#1C1C1C] aspect-square flex flex-col items-center justify-center gap-2 text-[#2ECC71] transition-colors group-hover:bg-[#2A2A2A]"
           >
-            <img
-              src={unsplash(cat.img, 600, 600)}
-              alt={cat.name}
-              className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/25 to-transparent" />
             {/* spotlight verde */}
             <AnimatePresence>
               {hovered === cat.id && (
@@ -500,14 +337,13 @@ function CategoryHoverEffect({ navigate }: { navigate: NavigateFn }) {
                 />
               )}
             </AnimatePresence>
-            <div className="absolute bottom-0 left-0 right-0 p-3 md:p-4 text-left">
-              <span
-                className="text-white font-black uppercase tracking-tight leading-none text-sm md:text-base"
-                style={{ fontFamily: "var(--font-display)" }}
-              >
-                {cat.name}
-              </span>
-            </div>
+            {categoriaIcono(cat.nombre)}
+            <span
+              className="text-white font-black uppercase tracking-tight leading-none text-xs md:text-sm text-center px-2"
+              style={{ fontFamily: "var(--font-display)" }}
+            >
+              {cat.nombre}
+            </span>
           </button>
         </div>
       ))}
@@ -517,84 +353,67 @@ function CategoryHoverEffect({ navigate }: { navigate: NavigateFn }) {
 
 // ─── PRODUCT CARD ────────────────────────────────────────────────────────────
 function ProductCard({
-  product: p, navigate, addToCart, dark = false,
+  grupo, navigate, addToCart,
 }: {
-  product: Product; navigate: NavigateFn; addToCart: AddToCartFn; dark?: boolean;
+  grupo: GrupoProducto; navigate: NavigateFn; addToCart: AddToCartFn;
 }) {
   const [added, setAdded] = useState(false);
+  const representante = grupo.variantes[0].producto;
+  const multiplesMedidas = grupo.variantes.length > 1;
+  const precios = grupo.variantes.map((v) => v.producto.precio);
+  const mismoPrecio = precios.every((p) => p === precios[0]);
 
   const handleAdd = (e: React.MouseEvent) => {
     e.stopPropagation();
-    addToCart(p);
+    if (multiplesMedidas) {
+      navigate("product", representante);
+      return;
+    }
+    addToCart(representante);
     setAdded(true);
     setTimeout(() => setAdded(false), 1400);
   };
 
   return (
     <div
-      onClick={() => navigate("product", p)}
-      className={`group cursor-pointer border flex flex-col transition-colors rounded-sm overflow-hidden ${
-        dark
-          ? "bg-[#2A2A2A] border-[#383838] hover:border-[#2ECC71]"
-          : "bg-white border-gray-200 hover:border-[#2ECC71]"
-      }`}
+      onClick={() => navigate("product", representante)}
+      className="group cursor-pointer border flex flex-col transition-colors rounded-sm overflow-hidden bg-white border-gray-200 hover:border-[#2ECC71]"
     >
-      <div className={`relative overflow-hidden ${dark ? "aspect-[2/1]" : "aspect-[4/3]"} ${dark ? "bg-[#1A1A1A]" : "bg-gray-100"}`}>
-        <img
-          src={unsplash(p.img, 600, 450)}
-          alt={p.name}
+      <div className="relative overflow-hidden aspect-[4/3] bg-gray-100">
+        <ProductImage
+          src={grupo.imagen_url}
+          alt={grupo.nombreBase}
           className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
         />
-        {p.badge && (
-          <div
-            className={`absolute top-2 left-2 text-xs font-black px-2 py-0.5 uppercase tracking-wide rounded-sm ${
-              p.isOffer ? "bg-[#2ECC71] text-white" : "bg-[#1C1C1C] text-white"
-            }`}
-          >
-            {p.badge}
-          </div>
-        )}
-        {!p.available && (
-          <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
-            <span className="text-white font-black text-sm uppercase tracking-widest">No disponible</span>
+        {multiplesMedidas && (
+          <div className="absolute top-2 left-2 text-xs font-black px-2 py-0.5 uppercase tracking-wide rounded-sm bg-[#1C1C1C] text-white">
+            {grupo.variantes.length} medidas
           </div>
         )}
       </div>
 
       <div className="p-3 flex flex-col flex-1">
-        <p
-          className={`text-xs mb-1 ${dark ? "text-gray-500" : "text-gray-400"}`}
-          style={{ fontFamily: "var(--font-mono)" }}
-        >
-          {p.sku}
-        </p>
-        <p className={`text-sm font-semibold leading-snug mb-3 flex-1 ${dark ? "text-white" : "text-[#1A1A1A]"}`}>
-          {p.name}
+        {!multiplesMedidas && (
+          <p className="text-xs mb-1 text-gray-400" style={{ fontFamily: "var(--font-mono)" }}>
+            {representante.sku}
+          </p>
+        )}
+        <p className="text-sm font-semibold leading-snug mb-3 flex-1 text-[#1A1A1A]">
+          {grupo.nombreBase}
         </p>
         <div className="flex items-end justify-between">
-          <div>
-            <p
-              className="text-lg font-black text-[#2ECC71]"
-              style={{ fontFamily: "var(--font-display)" }}
-            >
-              {fmt(p.price)}
-            </p>
-            {p.originalPrice && (
-              <p className="text-xs text-gray-400 line-through">{fmt(p.originalPrice)}</p>
-            )}
-          </div>
+          <p className="text-lg font-black text-[#2ECC71]" style={{ fontFamily: "var(--font-display)" }}>
+            {mismoPrecio
+              ? fmt(representante.precio)
+              : `Desde ${fmt(Math.min(...precios))}`}
+          </p>
           <button
             onClick={handleAdd}
-            disabled={!p.available}
             className={`flex items-center gap-1 px-3 py-1.5 text-xs font-bold transition-all rounded-sm ${
-              added
-                ? "bg-green-600 text-white"
-                : !p.available
-                ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-                : "bg-[#2ECC71] hover:bg-[#27AE60] text-white"
+              added ? "bg-green-600 text-white" : "bg-[#2ECC71] hover:bg-[#27AE60] text-white"
             }`}
           >
-            {added ? <><Check size={11} /> Agregado</> : "+ Agregar"}
+            {multiplesMedidas ? "Ver medidas" : added ? <><Check size={11} /> Agregado</> : "+ Agregar"}
           </button>
         </div>
       </div>
@@ -782,9 +601,8 @@ function TapeRule() {
 }
 
 // ─── HOME PAGE ───────────────────────────────────────────────────────────────
-function HomePage({ navigate, addToCart, products }: { navigate: NavigateFn; addToCart: AddToCartFn; products: Product[] }) {
+function HomePage({ navigate, categorias }: { navigate: NavigateFn; categorias: Categoria[] }) {
   const [searchVal, setSearchVal] = useState("");
-  const offers = products.filter((p) => p.isOffer);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -837,30 +655,8 @@ function HomePage({ navigate, addToCart, products }: { navigate: NavigateFn; add
             Ver todo <ChevronRight size={14} />
           </button>
         </div>
-        <CategoryHoverEffect navigate={navigate} />
+        <CategoryHoverEffect navigate={navigate} categorias={categorias} />
       </section>
-
-      {/* Offers */}
-      {offers.length > 0 && (
-        <section className="bg-[#1C1C1C] py-10">
-          <div className="max-w-7xl mx-auto px-4">
-            <div className="flex items-center gap-3 mb-6">
-              
-              <h2
-                className="text-2xl font-semibold text-white uppercase"
-                style={{ fontFamily: "var(--font-display)", letterSpacing: "0.12em" }}
-              >
-                Precios especiales
-              </h2>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-              {offers.map((p) => (
-                <ProductCard key={p.id} product={p} navigate={navigate} addToCart={addToCart} dark />
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
 
       {/* Brands */}
       <section className="border-y border-gray-200 py-12 bg-white">
@@ -945,33 +741,37 @@ function HomePage({ navigate, addToCart, products }: { navigate: NavigateFn; add
 }
 
 // ─── CATALOG PAGE ─────────────────────────────────────────────────────────────
-function CatalogPage({ navigate, addToCart, products }: { navigate: NavigateFn; addToCart: AddToCartFn; products: Product[] }) {
+const PAGE_SIZE = 24;
+
+function CatalogPage({
+  navigate, addToCart, products, categorias,
+}: {
+  navigate: NavigateFn; addToCart: AddToCartFn; products: Product[]; categorias: Categoria[];
+}) {
   const [catFilter, setCatFilter] = useState("");
-  const [brandFilter, setBrandFilter] = useState("");
   const [maxPrice, setMaxPrice] = useState(200000);
-  const [inStock, setInStock] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [query, setQuery] = useState("");
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
 
-  const allBrands = [...new Set(products.map((p) => p.brand))].sort();
+  useEffect(() => { setVisibleCount(PAGE_SIZE); }, [catFilter, maxPrice, query]);
 
   const filtered = products.filter((p) => {
-    if (catFilter && p.category !== catFilter) return false;
-    if (brandFilter && p.brand !== brandFilter) return false;
-    if (p.price > maxPrice) return false;
-    if (inStock && !p.available) return false;
+    if (catFilter && p.categoria_id !== catFilter) return false;
+    if (p.precio > maxPrice) return false;
     if (query) {
       const q = query.toLowerCase();
-      if (!p.name.toLowerCase().includes(q) && !p.sku.toLowerCase().includes(q) && !p.brand.toLowerCase().includes(q)) return false;
+      if (!p.nombre.toLowerCase().includes(q) && !p.sku.toLowerCase().includes(q)) return false;
     }
     return true;
   });
 
+  const grupos = agruparPorMedida(filtered);
+  const visibles = grupos.slice(0, visibleCount);
+
   const clearFilters = () => {
     setCatFilter("");
-    setBrandFilter("");
     setMaxPrice(200000);
-    setInStock(false);
   };
 
   const FilterPanel = () => (
@@ -979,7 +779,7 @@ function CatalogPage({ navigate, addToCart, products }: { navigate: NavigateFn; 
       <div>
         <p className="text-xs font-black uppercase tracking-widest text-gray-400 mb-2">Categoría</p>
         <div className="space-y-0.5">
-          {[{ id: "", name: "Todas las categorías" }, ...CATEGORIES].map((c) => (
+          {[{ id: "", nombre: "Todas las categorías" }, ...categorias].map((c) => (
             <button
               key={c.id}
               onClick={() => setCatFilter(c.id)}
@@ -989,26 +789,7 @@ function CatalogPage({ navigate, addToCart, products }: { navigate: NavigateFn; 
                   : "hover:bg-gray-100 text-gray-700"
               }`}
             >
-              {c.name}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div>
-        <p className="text-xs font-black uppercase tracking-widest text-gray-400 mb-2">Marca</p>
-        <div className="space-y-0.5">
-          {[{ brand: "" }, ...allBrands.map((b) => ({ brand: b }))].map(({ brand }) => (
-            <button
-              key={brand}
-              onClick={() => setBrandFilter(brand)}
-              className={`w-full text-left py-1.5 px-2 transition-colors ${
-                brandFilter === brand
-                  ? "bg-[#2ECC71] text-white font-bold"
-                  : "hover:bg-gray-100 text-gray-700"
-              }`}
-            >
-              {brand || "Todas las marcas"}
+              {c.nombre}
             </button>
           ))}
         </div>
@@ -1030,17 +811,7 @@ function CatalogPage({ navigate, addToCart, products }: { navigate: NavigateFn; 
         </p>
       </div>
 
-      <label className="flex items-center gap-2 cursor-pointer">
-        <input
-          type="checkbox"
-          checked={inStock}
-          onChange={(e) => setInStock(e.target.checked)}
-          className="accent-[#2ECC71] w-4 h-4"
-        />
-        <span className="font-medium text-gray-700">Solo disponibles</span>
-      </label>
-
-      {(catFilter || brandFilter || maxPrice < 200000 || inStock) && (
+      {(catFilter || maxPrice < 200000) && (
         <button
           onClick={clearFilters}
           className="text-xs text-[#2ECC71] font-bold hover:underline"
@@ -1106,18 +877,29 @@ function CatalogPage({ navigate, addToCart, products }: { navigate: NavigateFn; 
 
           <div className="flex items-center justify-between mb-4">
             <p className="text-sm text-gray-500">
-              <span className="font-bold text-gray-900">{filtered.length}</span>{" "}
-              producto{filtered.length !== 1 ? "s" : ""} encontrado{filtered.length !== 1 ? "s" : ""}
+              <span className="font-bold text-gray-900">{grupos.length}</span>{" "}
+              producto{grupos.length !== 1 ? "s" : ""} encontrado{grupos.length !== 1 ? "s" : ""}
             </p>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {filtered.map((p) => (
-              <ProductCard key={p.id} product={p} navigate={navigate} addToCart={addToCart} />
+            {visibles.map((g) => (
+              <ProductCard key={g.clave} grupo={g} navigate={navigate} addToCart={addToCart} />
             ))}
           </div>
 
-          {filtered.length === 0 && (
+          {visibleCount < grupos.length && (
+            <div className="text-center mt-8">
+              <button
+                onClick={() => setVisibleCount((v) => v + PAGE_SIZE)}
+                className="border-2 border-[#1C1C1C] px-6 py-2.5 text-sm font-black uppercase tracking-widest hover:bg-[#1C1C1C] hover:text-white transition-colors"
+              >
+                Cargar más
+              </button>
+            </div>
+          )}
+
+          {grupos.length === 0 && (
             <div className="text-center py-20 text-gray-400">
               <Package size={44} className="mx-auto mb-4 opacity-25" />
               <p className="font-bold text-gray-600 mb-1">No hay productos con esos filtros</p>
@@ -1144,17 +926,28 @@ function ProductPage({
 }) {
   const [qty, setQty] = useState(1);
   const [added, setAdded] = useState(false);
-  const [selectedVariant, setSelectedVariant] = useState(p.variants?.options[0] ?? "");
 
-  const related = products.filter((r) => r.category === p.category && r.id !== p.id).slice(0, 3);
+  const grupos = agruparPorMedida(products);
+  const grupo = grupos.find((g) => g.variantes.some((v) => v.producto.id === p.id)) ?? {
+    clave: p.id, nombreBase: p.nombre, categoria_id: p.categoria_id, imagen_url: p.imagen_url,
+    variantes: [{ producto: p, medida: null }],
+  };
+  const [selectedId, setSelectedId] = useState(p.id);
+  useEffect(() => { setSelectedId(p.id); }, [p.id]);
+  const seleccionado = grupo.variantes.find((v) => v.producto.id === selectedId)?.producto ?? p;
+  const tieneVariantes = grupo.variantes.length > 1;
+
+  const related = agruparPorMedida(
+    products.filter((r) => r.categoria_id === grupo.categoria_id && !grupo.variantes.some((v) => v.producto.id === r.id)),
+  ).slice(0, 3);
 
   const handleAdd = () => {
-    addToCart(p, qty);
+    addToCart(seleccionado, qty);
     setAdded(true);
     setTimeout(() => setAdded(false), 1600);
   };
 
-  const stockStatus = p.available
+  const stockStatus = seleccionado.activo
     ? { label: "Disponible en tienda", color: "text-green-700", dot: "bg-green-500" }
     : { label: "No disponible", color: "text-red-600", dot: "bg-red-500" };
 
@@ -1170,40 +963,27 @@ function ProductPage({
       <div className="grid md:grid-cols-2 gap-8 md:gap-12 mb-14">
         {/* Image */}
         <div className="bg-gray-100 aspect-square overflow-hidden">
-          <img
-            src={unsplash(p.img, 900, 900)}
-            alt={p.name}
+          <ProductImage
+            src={seleccionado.imagen_url ?? grupo.imagen_url}
+            alt={grupo.nombreBase}
             className="w-full h-full object-cover"
           />
         </div>
 
         {/* Info */}
         <div>
-          {p.badge && (
-            <span
-              className={`inline-block text-xs font-black px-2 py-0.5 uppercase tracking-widest mb-3 ${
-                p.isOffer ? "bg-[#2ECC71] text-white" : "bg-[#1C1C1C] text-white"
-              }`}
-            >
-              {p.badge}
-            </span>
-          )}
-
-          <p className="text-xs text-gray-400 mb-0.5 font-semibold uppercase tracking-widest">
-            {p.brand}
-          </p>
           <p
             className="text-xs mb-2"
             style={{ fontFamily: "var(--font-mono)", color: "#8a8a8a" }}
           >
-            SKU: {p.sku}
+            SKU: {seleccionado.sku}
           </p>
 
           <h1
             className="text-2xl md:text-4xl font-black uppercase tracking-tight leading-tight mb-4"
             style={{ fontFamily: "var(--font-display)" }}
           >
-            {p.name}
+            {grupo.nombreBase}
           </h1>
 
           <div className="mb-4">
@@ -1211,16 +991,8 @@ function ProductPage({
               className="text-4xl font-black text-[#2ECC71] leading-none"
               style={{ fontFamily: "var(--font-display)" }}
             >
-              {fmt(p.price)}
+              {fmt(seleccionado.precio)}
             </p>
-            {p.originalPrice && (
-              <div className="flex items-center gap-2 mt-1">
-                <p className="text-sm text-gray-400 line-through">{fmt(p.originalPrice)}</p>
-                <span className="bg-[#2ECC71] text-white text-xs font-black px-1.5 py-0.5">
-                  -{Math.round((1 - p.price / p.originalPrice) * 100)}%
-                </span>
-              </div>
-            )}
             <p className="text-xs text-gray-400 mt-1">Precio en pesos chilenos. IVA incluido.</p>
           </div>
 
@@ -1230,25 +1002,27 @@ function ProductPage({
             {stockStatus.label}
           </div>
 
-          {/* Variants */}
-          {p.variants && (
+          {/* Medidas */}
+          {tieneVariantes && (
             <div className="mb-5">
               <p className="text-xs font-black uppercase tracking-widest text-gray-400 mb-2">
-                {p.variants.type === "color" ? "Color" : "Talla"}:{" "}
-                <span className="text-gray-900 normal-case tracking-normal">{selectedVariant}</span>
+                Medida:{" "}
+                <span className="text-gray-900 normal-case tracking-normal">
+                  {grupo.variantes.find((v) => v.producto.id === selectedId)?.medida ?? seleccionado.nombre}
+                </span>
               </p>
               <div className="flex flex-wrap gap-2">
-                {p.variants.options.map((opt) => (
+                {grupo.variantes.map(({ producto: v, medida }) => (
                   <button
-                    key={opt}
-                    onClick={() => setSelectedVariant(opt)}
+                    key={v.id}
+                    onClick={() => setSelectedId(v.id)}
                     className={`px-3 py-1.5 text-xs font-bold border transition-colors ${
-                      selectedVariant === opt
+                      selectedId === v.id
                         ? "bg-[#1C1C1C] text-white border-[#1C1C1C]"
                         : "border-gray-300 text-gray-700 hover:border-[#2ECC71] hover:text-[#2ECC71]"
                     }`}
                   >
-                    {opt}
+                    {medida ?? v.nombre}
                   </button>
                 ))}
               </div>
@@ -1279,11 +1053,11 @@ function ProductPage({
             </div>
             <button
               onClick={handleAdd}
-              disabled={!p.available}
+              disabled={!seleccionado.activo}
               className={`flex-1 py-3 font-black text-sm uppercase tracking-widest transition-colors flex items-center justify-center gap-2 ${
                 added
                   ? "bg-green-600 text-white"
-                  : !p.available
+                  : !seleccionado.activo
                   ? "bg-gray-200 text-gray-400 cursor-not-allowed"
                   : "bg-[#2ECC71] hover:bg-[#27AE60] text-white"
               }`}
@@ -1313,30 +1087,6 @@ function ProductPage({
               </div>
             </div>
           </div>
-
-          {/* Description */}
-          <div className="mt-6 pt-5 border-t border-gray-200">
-            <p className="text-xs font-black uppercase tracking-widest text-gray-400 mb-2">Descripción</p>
-            <p className="text-sm text-gray-700 leading-relaxed">{p.description}</p>
-          </div>
-        </div>
-      </div>
-
-      {/* Specs table */}
-      <div className="mb-14">
-        <h2
-          className="text-xl md:text-2xl font-black uppercase tracking-tight mb-4"
-          style={{ fontFamily: "var(--font-display)" }}
-        >
-          Especificaciones Técnicas
-        </h2>
-        <div className="border border-gray-200 overflow-hidden max-w-2xl">
-          {p.specs.map((s, i) => (
-            <div key={s.key} className={`grid grid-cols-2 text-sm ${i % 2 === 0 ? "bg-white" : "bg-gray-50"}`}>
-              <div className="px-4 py-2.5 font-semibold text-gray-600 border-r border-gray-200">{s.key}</div>
-              <div className="px-4 py-2.5 text-gray-900 font-medium">{s.value}</div>
-            </div>
-          ))}
         </div>
       </div>
 
@@ -1350,8 +1100,8 @@ function ProductPage({
             Productos Relacionados
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-            {related.map((r) => (
-              <ProductCard key={r.id} product={r} navigate={navigate} addToCart={addToCart} />
+            {related.map((g) => (
+              <ProductCard key={g.clave} grupo={g} navigate={navigate} addToCart={addToCart} />
             ))}
           </div>
         </div>
@@ -1672,7 +1422,7 @@ function AuthPage({ onGuest }: { onGuest: () => void }) {
 function CartPage({
   cart, updateQty, cartTotal, navigate,
 }: {
-  cart: CartItem[]; updateQty: (id: number, qty: number) => void;
+  cart: CartItem[]; updateQty: (id: string, qty: number) => void;
   cartTotal: number; navigate: NavigateFn;
 }) {
   if (cart.length === 0) {
@@ -1711,9 +1461,9 @@ function CartPage({
           {cart.map((item) => (
             <div key={item.id} className="flex gap-3 border border-gray-200 bg-white p-3">
               <div className="w-20 h-20 bg-gray-100 shrink-0 overflow-hidden">
-                <img
-                  src={unsplash(item.img, 160, 160)}
-                  alt={item.name}
+                <ProductImage
+                  src={item.imagen_url}
+                  alt={item.nombre}
                   className="w-full h-full object-cover"
                 />
               </div>
@@ -1725,7 +1475,7 @@ function CartPage({
                 >
                   {item.sku}
                 </p>
-                <p className="text-sm font-semibold leading-snug">{item.name}</p>
+                <p className="text-sm font-semibold leading-snug">{item.nombre}</p>
 
                 <div className="flex items-center justify-between mt-2.5">
                   <div className="flex items-center border border-gray-300">
@@ -1754,10 +1504,10 @@ function CartPage({
                       className="font-black text-[#2ECC71]"
                       style={{ fontFamily: "var(--font-display)" }}
                     >
-                      {fmt(item.price * item.qty)}
+                      {fmt(item.precio * item.qty)}
                     </p>
                     {item.qty > 1 && (
-                      <p className="text-xs text-gray-400">{fmt(item.price)} c/u</p>
+                      <p className="text-xs text-gray-400">{fmt(item.precio)} c/u</p>
                     )}
                   </div>
                 </div>
@@ -1796,9 +1546,9 @@ function CartPage({
               {cart.map((i) => (
                 <div key={i.id} className="flex justify-between gap-2">
                   <span className="text-gray-600 leading-snug">
-                    {i.name} <span className="text-gray-400">×{i.qty}</span>
+                    {i.nombre} <span className="text-gray-400">×{i.qty}</span>
                   </span>
-                  <span className="font-semibold shrink-0 ml-2">{fmt(i.price * i.qty)}</span>
+                  <span className="font-semibold shrink-0 ml-2">{fmt(i.precio * i.qty)}</span>
                 </div>
               ))}
             </div>
@@ -1934,11 +1684,11 @@ function CheckoutPage({
         }),
         items: cart.map((i) => ({
           producto_id: i.id,
-          nombre_producto: i.name,
+          nombre_producto: i.nombre,
           sku: i.sku,
           cantidad: i.qty,
-          precio_unitario: i.price,
-          subtotal: i.price * i.qty,
+          precio_unitario: i.precio,
+          subtotal: i.precio * i.qty,
         })),
       });
       setOrderNum(pedido.buy_order);
@@ -2288,10 +2038,10 @@ function CheckoutPage({
               {cart.map((i) => (
                 <div key={i.id} className="flex justify-between gap-2">
                   <span className="text-gray-600 leading-snug">
-                    {i.name}
+                    {i.nombre}
                     <span className="text-gray-400"> ×{i.qty}</span>
                   </span>
-                  <span className="font-semibold shrink-0">{fmt(i.price * i.qty)}</span>
+                  <span className="font-semibold shrink-0">{fmt(i.precio * i.qty)}</span>
                 </div>
               ))}
             </div>
@@ -3009,10 +2759,8 @@ function OrderCard({ order, updateStatus }: { order: Pedido; updateStatus: (id: 
 }
 
 function AdminPage({
-  products, setProducts, navigate, contactMessages, setContactMessages,
+  navigate, contactMessages, setContactMessages,
 }: {
-  products: Product[];
-  setProducts: React.Dispatch<React.SetStateAction<Product[]>>;
   navigate: NavigateFn;
   contactMessages: ContactMessage[];
   setContactMessages: React.Dispatch<React.SetStateAction<ContactMessage[]>>;
@@ -3035,62 +2783,116 @@ function AdminPage({
 
   const [tab, setTab] = useState<"pedidos" | "historial" | "productos" | "mensajes">("pedidos");
   const unreadCount = contactMessages.filter((m) => !m.read).length;
-  const [editingId, setEditingId] = useState<number | null>(null);
-  const [editBuf, setEditBuf] = useState<Partial<Product>>({});
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editBuf, setEditBuf] = useState<Partial<ProductoAdmin>>({});
   const [search, setSearch] = useState("");
-  const [sortBy, setSortBy] = useState<"default" | "price-asc" | "price-desc" | "stock-asc" | "stock-desc">("default");
   const [showAddForm, setShowAddForm] = useState(false);
   const [newProduct, setNewProduct] = useState({
-    name: "", sku: "", brand: "", category: "", price: "", originalPrice: "",
-    description: "", img: "", badge: "", available: true,
+    sku: "", nombre: "", categoria_id: "", precio: "", costo: "", imagen_url: "",
   });
   const [addErrors, setAddErrors] = useState<Record<string, string>>({});
 
-  const CATEGORY_OPTIONS = [
-    { id: "electric", name: "Herramientas Eléctricas" },
-    { id: "manual", name: "Herramientas Manuales" },
-    { id: "fixings", name: "Fijaciones y Tornillería" },
-    { id: "paint", name: "Pinturas" },
-    { id: "electrical", name: "Electricidad" },
-    { id: "plumbing", name: "Gasfitería" },
-    { id: "garden", name: "Jardín" },
-    { id: "safety", name: "Seguridad" },
-  ];
+  const [categorias, setCategorias] = useState<Categoria[]>([]);
+  const [productosAdmin, setProductosAdmin] = useState<ProductoAdmin[]>([]);
+  const [productosTotal, setProductosTotal] = useState(0);
+  const [productosPage, setProductosPage] = useState(0);
+  const [productosLoading, setProductosLoading] = useState(false);
+  const PRODUCTOS_PAGE_SIZE = 50;
+
+  useEffect(() => {
+    listarCategorias().then(setCategorias).catch((err) => console.error("No se pudieron cargar las categorías:", err));
+  }, []);
+
+  const fetchProductosAdmin = useCallback(async () => {
+    setProductosLoading(true);
+    try {
+      const { productos: lista, total } = await listarProductosAdmin({
+        search, page: productosPage, pageSize: PRODUCTOS_PAGE_SIZE,
+      });
+      setProductosAdmin(lista);
+      setProductosTotal(total);
+    } catch (err) {
+      console.error("No se pudieron cargar los productos:", err);
+    } finally {
+      setProductosLoading(false);
+    }
+  }, [search, productosPage]);
+
+  useEffect(() => { fetchProductosAdmin(); }, [fetchProductosAdmin]);
+  useEffect(() => { setProductosPage(0); }, [search]);
 
   function validateNewProduct() {
     const e: Record<string, string> = {};
-    if (!newProduct.name.trim()) e.name = "Requerido";
+    if (!newProduct.nombre.trim()) e.nombre = "Requerido";
     if (!newProduct.sku.trim()) e.sku = "Requerido";
-    if (!newProduct.brand.trim()) e.brand = "Requerido";
-    if (!newProduct.category) e.category = "Requerido";
-    if (!newProduct.price || isNaN(Number(newProduct.price)) || Number(newProduct.price) <= 0) e.price = "Precio inválido";
-    if (!newProduct.description.trim()) e.description = "Requerido";
+    if (!newProduct.categoria_id) e.categoria_id = "Requerido";
+    if (!newProduct.precio || isNaN(Number(newProduct.precio)) || Number(newProduct.precio) <= 0) e.precio = "Precio inválido";
+    if (newProduct.costo === "" || isNaN(Number(newProduct.costo)) || Number(newProduct.costo) < 0) e.costo = "Costo inválido";
     return e;
   }
 
-  function handleAddProduct() {
+  async function handleAddProduct() {
     const errs = validateNewProduct();
     setAddErrors(errs);
     if (Object.keys(errs).length > 0) return;
-    const id = Math.max(...products.map((p) => p.id)) + 1;
-    setProducts((prev) => [...prev, {
-      id,
-      name: newProduct.name.trim(),
-      sku: newProduct.sku.trim(),
-      brand: newProduct.brand.trim(),
-      category: newProduct.category,
-      price: Number(newProduct.price),
-      originalPrice: newProduct.originalPrice ? Number(newProduct.originalPrice) : undefined,
-      description: newProduct.description.trim(),
-      img: newProduct.img.trim() || "photo-1504307651254-35680f356dfd",
-      badge: newProduct.badge.trim() || undefined,
-      available: newProduct.available,
-      specs: [],
-    }]);
-    setNewProduct({ name: "", sku: "", brand: "", category: "", price: "", originalPrice: "", description: "", img: "", badge: "", available: true });
-    setAddErrors({});
-    setShowAddForm(false);
+    try {
+      await crearProducto({
+        sku: newProduct.sku.trim(),
+        nombre: newProduct.nombre.trim(),
+        categoria_id: newProduct.categoria_id,
+        categoria_nombre: categorias.find((c) => c.id === newProduct.categoria_id)?.nombre ?? "",
+        precio: Number(newProduct.precio),
+        costo: Number(newProduct.costo),
+        imagen_url: newProduct.imagen_url.trim() || null,
+      });
+      setNewProduct({ sku: "", nombre: "", categoria_id: "", precio: "", costo: "", imagen_url: "" });
+      setAddErrors({});
+      setShowAddForm(false);
+      fetchProductosAdmin();
+    } catch (err) {
+      console.error("No se pudo crear el producto:", err);
+      setAddErrors({ nombre: "No se pudo guardar. Intenta de nuevo." });
+    }
   }
+
+  function startEdit(p: ProductoAdmin) {
+    setEditingId(p.id);
+    setEditBuf({ nombre: p.nombre, precio: p.precio, costo: p.costo });
+  }
+
+  async function saveEdit(id: string) {
+    try {
+      await actualizarProducto(id, editBuf);
+      setProductosAdmin((prev) => prev.map((p) => (p.id === id ? { ...p, ...editBuf } : p)));
+    } catch (err) {
+      console.error("No se pudo actualizar el producto:", err);
+    } finally {
+      setEditingId(null);
+    }
+  }
+
+  async function handleToggleActivo(p: ProductoAdmin) {
+    const activo = !p.activo;
+    setProductosAdmin((prev) => prev.map((x) => (x.id === p.id ? { ...x, activo } : x)));
+    try {
+      await toggleActivoProducto(p.id, activo);
+    } catch (err) {
+      console.error("No se pudo actualizar la disponibilidad:", err);
+      fetchProductosAdmin();
+    }
+  }
+
+  async function handleDeleteProducto(p: ProductoAdmin) {
+    if (!confirm(`¿Eliminar "${p.nombre}"?`)) return;
+    try {
+      await eliminarProducto(p.id);
+      setProductosAdmin((prev) => prev.filter((x) => x.id !== p.id));
+      setProductosTotal((t) => t - 1);
+    } catch (err) {
+      console.error("No se pudo eliminar el producto:", err);
+    }
+  }
+
   const [seenCount, setSeenCount] = useState(orders.length);
   const [bellOpen, setBellOpen] = useState(false);
   const [mailOpen, setMailOpen] = useState(false);
@@ -3101,14 +2903,6 @@ function AdminPage({
     if (bellOpen) setSeenCount(orders.length);
   }, [bellOpen, orders.length]);
 
-  function startEdit(p: Product) {
-    setEditingId(p.id);
-    setEditBuf({ name: p.name, price: p.price, badge: p.badge });
-  }
-  function saveEdit(id: number) {
-    setProducts((prev) => prev.map((p) => (p.id === id ? { ...p, ...editBuf } : p)));
-    setEditingId(null);
-  }
   async function updateStatus(orderId: string, estado: EstadoPedido) {
     setOrders((prev) => prev.map((o) => (o.id === orderId ? { ...o, estado } : o)));
     try {
@@ -3137,7 +2931,7 @@ function AdminPage({
   const TAB_LABELS: { key: typeof tab; label: string; count?: number; alert?: boolean }[] = [
     { key: "pedidos",   label: "Pedidos",   count: activeOrders.length },
     { key: "historial", label: "Historial", count: historyOrders.length },
-    { key: "productos", label: "Productos", count: products.length },
+    { key: "productos", label: "Productos", count: productosTotal },
     { key: "mensajes",  label: "Mensajes",  count: contactMessages.length, alert: unreadCount > 0 },
   ];
 
@@ -3309,7 +3103,7 @@ function AdminPage({
             <input
               value={search}
               onChange={(e) => { setSearch(e.target.value); setEditingId(null); }}
-              placeholder={tab === "productos" ? "Buscar por nombre, SKU o marca…" : "Buscar por N° pedido o cliente…"}
+              placeholder={tab === "productos" ? "Buscar por nombre o SKU…" : "Buscar por N° pedido o cliente…"}
               className="w-full pl-9 pr-8 py-2.5 text-sm border border-gray-200 rounded-sm bg-white outline-none focus:border-[#2ECC71] transition-colors"
             />
             {search && (
@@ -3414,13 +3208,11 @@ function AdminPage({
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {[
-                    { label: "Nombre del producto *", key: "name", placeholder: "Taladro Percutor Bosch 550W" },
-                    { label: "SKU *", key: "sku", placeholder: "BSH-GSB550" },
-                    { label: "Marca *", key: "brand", placeholder: "Bosch" },
-                    { label: "Precio CLP *", key: "price", placeholder: "49990", type: "number" },
-                    { label: "Precio original (opcional)", key: "originalPrice", placeholder: "59990", type: "number" },
-                    { label: "Badge (opcional)", key: "badge", placeholder: "Oferta, Más vendido..." },
-                    { label: "ID imagen Unsplash (opcional)", key: "img", placeholder: "photo-1504307651254-35680f356dfd" },
+                    { label: "Nombre del producto *", key: "nombre", placeholder: "Tornillo Volcanita Punta Broca 6 X 1\"" },
+                    { label: "SKU *", key: "sku", placeholder: "01-01-178" },
+                    { label: "Precio de venta CLP *", key: "precio", placeholder: "500", type: "number" },
+                    { label: "Costo CLP *", key: "costo", placeholder: "320", type: "number" },
+                    { label: "URL de imagen (opcional)", key: "imagen_url", placeholder: "https://..." },
                   ].map(({ label, key, placeholder, type }) => (
                     <div key={key}>
                       <label className="block text-xs font-black uppercase tracking-widest text-gray-500 mb-1">{label}</label>
@@ -3437,37 +3229,16 @@ function AdminPage({
                   <div>
                     <label className="block text-xs font-black uppercase tracking-widest text-gray-500 mb-1">Categoría *</label>
                     <select
-                      value={newProduct.category}
-                      onChange={(e) => setNewProduct((p) => ({ ...p, category: e.target.value }))}
-                      className={`w-full border ${addErrors.category ? "border-red-400" : "border-gray-300"} rounded-sm px-3 py-2 text-sm focus:border-[#2ECC71] outline-none bg-white`}
+                      value={newProduct.categoria_id}
+                      onChange={(e) => setNewProduct((p) => ({ ...p, categoria_id: e.target.value }))}
+                      className={`w-full border ${addErrors.categoria_id ? "border-red-400" : "border-gray-300"} rounded-sm px-3 py-2 text-sm focus:border-[#2ECC71] outline-none bg-white`}
                     >
                       <option value="">Seleccionar categoría</option>
-                      {CATEGORY_OPTIONS.map((c) => (
-                        <option key={c.id} value={c.id}>{c.name}</option>
+                      {categorias.map((c) => (
+                        <option key={c.id} value={c.id}>{c.nombre}</option>
                       ))}
                     </select>
-                    {addErrors.category && <p className="text-red-500 text-xs mt-0.5">{addErrors.category}</p>}
-                  </div>
-                  <div className="sm:col-span-2">
-                    <label className="block text-xs font-black uppercase tracking-widest text-gray-500 mb-1">Descripción *</label>
-                    <textarea
-                      placeholder="Descripción del producto..."
-                      value={newProduct.description}
-                      onChange={(e) => setNewProduct((p) => ({ ...p, description: e.target.value }))}
-                      rows={3}
-                      className={`w-full border ${addErrors.description ? "border-red-400" : "border-gray-300"} rounded-sm px-3 py-2 text-sm focus:border-[#2ECC71] outline-none resize-none`}
-                    />
-                    {addErrors.description && <p className="text-red-500 text-xs mt-0.5">{addErrors.description}</p>}
-                  </div>
-                  <div className="sm:col-span-2 flex items-center gap-3">
-                    <label className="text-xs font-black uppercase tracking-widest text-gray-500">Disponibilidad inicial:</label>
-                    <button
-                      type="button"
-                      onClick={() => setNewProduct((p) => ({ ...p, available: !p.available }))}
-                      className={`text-xs font-black uppercase tracking-wide px-3 py-1.5 rounded-sm transition-colors ${newProduct.available ? "bg-green-100 text-green-700" : "bg-red-100 text-red-600"}`}
-                    >
-                      {newProduct.available ? "Disponible" : "No disponible"}
-                    </button>
+                    {addErrors.categoria_id && <p className="text-red-500 text-xs mt-0.5">{addErrors.categoria_id}</p>}
                   </div>
                 </div>
                 <div className="flex gap-3 mt-5">
@@ -3493,76 +3264,58 @@ function AdminPage({
                 <tr className="border-b border-gray-200 bg-gray-50 text-xs text-gray-500 font-semibold uppercase tracking-wider">
                   <th className="text-left px-4 py-3">Producto</th>
                   <th className="text-left px-4 py-3 hidden md:table-cell">SKU</th>
-                  <th className="text-left px-4 py-3">
-                    <button
-                      onClick={() => setSortBy(sortBy === "price-asc" ? "price-desc" : "price-asc")}
-                      className="flex items-center gap-1 hover:text-[#1C1C1C] transition-colors"
-                    >
-                      Precio
-                      <span className="flex flex-col leading-none opacity-60">
-                        <span className={sortBy === "price-asc" ? "text-[#2ECC71]" : ""}>▲</span>
-                        <span className={sortBy === "price-desc" ? "text-[#2ECC71]" : ""}>▼</span>
-                      </span>
-                    </button>
-                  </th>
-                  <th className="text-left px-4 py-3">
-                      Disponibilidad
-                  </th>
-                  <th className="text-left px-4 py-3 hidden md:table-cell">Badge</th>
-                  <th className="px-4 py-3 text-right">
-                    {sortBy !== "default" && (
-                      <button onClick={() => setSortBy("default")} className="text-[10px] text-gray-400 hover:text-gray-600 normal-case font-normal">
-                        Limpiar orden
-                      </button>
-                    )}
-                  </th>
+                  <th className="text-left px-4 py-3 hidden lg:table-cell">Categoría</th>
+                  <th className="text-left px-4 py-3">Precio</th>
+                  <th className="text-left px-4 py-3 hidden md:table-cell">Costo</th>
+                  <th className="text-left px-4 py-3">Disponibilidad</th>
+                  <th className="px-4 py-3 text-right" />
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {products.filter((p) => {
-                  const q = search.toLowerCase();
-                  return !q || p.name.toLowerCase().includes(q) || p.sku.toLowerCase().includes(q) || p.brand.toLowerCase().includes(q);
-                }).sort((a, b) => {
-                  if (sortBy === "price-asc")  return a.price - b.price;
-                  if (sortBy === "price-desc") return b.price - a.price;
-                  if (sortBy === "stock-asc")  return Number(b.available) - Number(a.available);
-                  if (sortBy === "stock-desc") return Number(a.available) - Number(b.available);
-                  return 0;
-                }).map((p) => {
+                {productosLoading && (
+                  <tr><td colSpan={7} className="px-4 py-8 text-center text-gray-400 text-sm">Cargando productos…</td></tr>
+                )}
+                {!productosLoading && productosAdmin.length === 0 && (
+                  <tr><td colSpan={7} className="px-4 py-8 text-center text-gray-400 text-sm">Sin productos con esos filtros</td></tr>
+                )}
+                {productosAdmin.map((p) => {
                   const isEditing = editingId === p.id;
                   return (
                     <tr key={p.id} className={`transition-colors ${isEditing ? "bg-[#f0fdf4]" : "hover:bg-gray-50"}`}>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-3">
-                          <img src={unsplash(p.img, 80, 80)} alt={p.name} className="w-10 h-10 rounded-sm object-cover shrink-0" />
+                          <ProductImage src={p.imagen_url} alt={p.nombre} className="w-10 h-10 rounded-sm object-cover shrink-0" />
                           {isEditing
-                            ? <input value={editBuf.name ?? ""} onChange={(e) => setEditBuf((b) => ({ ...b, name: e.target.value }))} className="border border-[#2ECC71] rounded-sm px-2 py-1 text-sm w-full max-w-[200px] outline-none" />
-                            : <span className="font-medium text-[#1C1C1C] leading-snug">{p.name}</span>
+                            ? <input value={editBuf.nombre ?? ""} onChange={(e) => setEditBuf((b) => ({ ...b, nombre: e.target.value }))} className="border border-[#2ECC71] rounded-sm px-2 py-1 text-sm w-full max-w-[200px] outline-none" />
+                            : <span className="font-medium text-[#1C1C1C] leading-snug">{p.nombre}</span>
                           }
                         </div>
                       </td>
                       <td className="px-4 py-3 hidden md:table-cell">
                         <span className="text-gray-400 font-mono text-xs">{p.sku}</span>
                       </td>
+                      <td className="px-4 py-3 hidden lg:table-cell">
+                        <span className="text-gray-500 text-xs">{p.categoria_nombre}</span>
+                      </td>
                       <td className="px-4 py-3">
                         {isEditing
-                          ? <input type="number" value={editBuf.price ?? ""} onChange={(e) => setEditBuf((b) => ({ ...b, price: Number(e.target.value) }))} className="border border-[#2ECC71] rounded-sm px-2 py-1 text-sm w-24 outline-none" />
-                          : <span className="font-semibold text-[#1C1C1C]">{fmt(p.price)}</span>
+                          ? <input type="number" value={editBuf.precio ?? ""} onChange={(e) => setEditBuf((b) => ({ ...b, precio: Number(e.target.value) }))} className="border border-[#2ECC71] rounded-sm px-2 py-1 text-sm w-24 outline-none" />
+                          : <span className="font-semibold text-[#1C1C1C]">{fmt(p.precio)}</span>
+                        }
+                      </td>
+                      <td className="px-4 py-3 hidden md:table-cell">
+                        {isEditing
+                          ? <input type="number" value={editBuf.costo ?? ""} onChange={(e) => setEditBuf((b) => ({ ...b, costo: Number(e.target.value) }))} className="border border-[#2ECC71] rounded-sm px-2 py-1 text-sm w-24 outline-none" />
+                          : <span className="text-gray-500">{fmt(p.costo)}</span>
                         }
                       </td>
                       <td className="px-4 py-3">
                         <button
-                          onClick={() => setProducts((prev) => prev.map((x) => x.id === p.id ? { ...x, available: !x.available } : x))}
-                          className={`text-xs font-black uppercase tracking-wide px-3 py-1.5 rounded-sm transition-colors ${p.available ? "bg-green-100 text-green-700 hover:bg-green-200" : "bg-red-100 text-red-600 hover:bg-red-200"}`}
+                          onClick={() => handleToggleActivo(p)}
+                          className={`text-xs font-black uppercase tracking-wide px-3 py-1.5 rounded-sm transition-colors ${p.activo ? "bg-green-100 text-green-700 hover:bg-green-200" : "bg-red-100 text-red-600 hover:bg-red-200"}`}
                         >
-                          {p.available ? "Disponible" : "No disponible"}
+                          {p.activo ? "Disponible" : "No disponible"}
                         </button>
-                      </td>
-                      <td className="px-4 py-3 hidden md:table-cell">
-                        {isEditing
-                          ? <input value={editBuf.badge ?? ""} onChange={(e) => setEditBuf((b) => ({ ...b, badge: e.target.value }))} placeholder="ej: Oferta" className="border border-[#2ECC71] rounded-sm px-2 py-1 text-sm w-24 outline-none" />
-                          : <span className="text-xs text-gray-400">{p.badge ?? "—"}</span>
-                        }
                       </td>
                       <td className="px-4 py-3 text-right">
                         {isEditing ? (
@@ -3576,11 +3329,7 @@ function AdminPage({
                           <div className="flex gap-3 justify-end">
                             <button onClick={() => startEdit(p)} className="text-xs font-semibold text-[#2ECC71] hover:underline">Editar</button>
                             <button
-                              onClick={() => {
-                                if (confirm(`¿Eliminar "${p.name}"?`)) {
-                                  setProducts((prev) => prev.filter((x) => x.id !== p.id));
-                                }
-                              }}
+                              onClick={() => handleDeleteProducto(p)}
                               className="text-xs font-semibold text-red-400 hover:text-red-600 hover:underline"
                             >
                               Eliminar
@@ -3594,6 +3343,28 @@ function AdminPage({
               </tbody>
             </table>
           </div>
+
+          {productosTotal > PRODUCTOS_PAGE_SIZE && (
+            <div className="flex items-center justify-between text-sm text-gray-500 px-1">
+              <button
+                onClick={() => setProductosPage((n) => Math.max(0, n - 1))}
+                disabled={productosPage === 0}
+                className="font-bold hover:text-[#2ECC71] disabled:opacity-30 disabled:hover:text-gray-500 transition-colors"
+              >
+                ← Anterior
+              </button>
+              <span>
+                Página {productosPage + 1} de {Math.max(1, Math.ceil(productosTotal / PRODUCTOS_PAGE_SIZE))}
+              </span>
+              <button
+                onClick={() => setProductosPage((n) => n + 1)}
+                disabled={(productosPage + 1) * PRODUCTOS_PAGE_SIZE >= productosTotal}
+                className="font-bold hover:text-[#2ECC71] disabled:opacity-30 disabled:hover:text-gray-500 transition-colors"
+              >
+                Siguiente →
+              </button>
+            </div>
+          )}
           </div>
         )}
 
@@ -3693,9 +3464,16 @@ export default function App() {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [orderNum, setOrderNum] = useState("");
   const [lastOrder, setLastOrder] = useState<Pedido | null>(null);
-  const [products, setProducts] = useState<Product[]>(PRODUCTS);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [categorias, setCategorias] = useState<Categoria[]>([]);
   const [contactMessages, setContactMessages] = useState<ContactMessage[]>([]);
   const [isGuest, setIsGuest] = useState(false);
+
+  useEffect(() => {
+    Promise.all([listarProductosPublicos(), listarCategorias()])
+      .then(([productos, cats]) => { setProducts(productos); setCategorias(cats); })
+      .catch((err) => console.error("No se pudo cargar el catálogo:", err));
+  }, []);
 
   const navigate: NavigateFn = (to, product) => {
     if (to === "checkout" && !session && !isGuest) {
@@ -3725,13 +3503,13 @@ export default function App() {
     });
   };
 
-  const updateQty = (id: number, qty: number) => {
+  const updateQty = (id: string, qty: number) => {
     if (qty <= 0) setCart((prev) => prev.filter((i) => i.id !== id));
     else setCart((prev) => prev.map((i) => (i.id === id ? { ...i, qty } : i)));
   };
 
   const cartCount = cart.reduce((a, b) => a + b.qty, 0);
-  const cartTotal = cart.reduce((a, b) => a + b.price * b.qty, 0);
+  const cartTotal = cart.reduce((a, b) => a + b.precio * b.qty, 0);
 
   const displayedProduct = productMatch
     ? products.find((p) => String(p.id) === productMatch.params.id) ?? null
@@ -3756,8 +3534,8 @@ export default function App() {
 
       <main className="flex-1">
         <Routes>
-          <Route path="/" element={<HomePage navigate={navigate} addToCart={addToCart} products={products} />} />
-          <Route path="/catalogo" element={<CatalogPage navigate={navigate} addToCart={addToCart} products={products} />} />
+          <Route path="/" element={<HomePage navigate={navigate} categorias={categorias} />} />
+          <Route path="/catalogo" element={<CatalogPage navigate={navigate} addToCart={addToCart} products={products} categorias={categorias} />} />
           <Route
             path="/producto/:id"
             element={
@@ -3814,7 +3592,6 @@ export default function App() {
                   ? <Navigate to="/auth" state={{ from: "/admin" }} replace />
                   : cliente?.is_admin
                     ? <AdminPage
-                        products={products} setProducts={setProducts}
                         navigate={navigate}
                         contactMessages={contactMessages}
                         setContactMessages={setContactMessages}

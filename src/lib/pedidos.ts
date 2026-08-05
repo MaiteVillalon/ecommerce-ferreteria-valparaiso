@@ -6,7 +6,7 @@ export type TipoDocumento = "boleta" | "factura";
 export interface PedidoItem {
   id: string;
   pedido_id: string;
-  producto_id: number;
+  producto_id: string;
   nombre_producto: string;
   sku: string | null;
   cantidad: number;
@@ -40,7 +40,7 @@ export interface Pedido {
 }
 
 export interface NuevoPedidoItemInput {
-  producto_id: number;
+  producto_id: string;
   nombre_producto: string;
   sku?: string | null;
   cantidad: number;

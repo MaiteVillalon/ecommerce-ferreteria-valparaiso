@@ -7,7 +7,7 @@ export function volverAPedir(pedido: Pedido, products: Product[], addToCart: Add
 
   for (const item of pedido.pedido_items) {
     const producto = products.find((p) => p.id === item.producto_id);
-    if (producto && producto.available) {
+    if (producto && producto.activo) {
       addToCart(producto, item.cantidad);
       agregados += 1;
     } else {
